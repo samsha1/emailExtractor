@@ -7,7 +7,7 @@ class AddInput extends Component {
     super();
     this.state = {
       inputText: "",
-      outputText: "foo@gmail.com",
+      outputText: "",
       errors: {},
       isLoading: "",
     };
