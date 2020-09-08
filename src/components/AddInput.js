@@ -15,6 +15,9 @@ class AddInput extends Component {
       isLoading: "",
       showOutput: true,
       separator: "",
+      otherSeparator: "",
+      group: "",
+      sort: false,
     };
     this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
@@ -41,6 +44,12 @@ class AddInput extends Component {
     });
   };
 
+  onCheckSort = (e) => {
+    this.setState({
+      sort: !this.state.sort,
+    });
+  };
+
   validate = () => {
     let isError = false;
     //clear form error everytime they submit
@@ -57,14 +66,7 @@ class AddInput extends Component {
     return isError;
   };
   render() {
-    const {
-      errors,
-      inputText,
-      outputText,
-      disabled,
-      showOutput,
-      separator,
-    } = this.state;
+    const { errors, inputText, outputText, disabled, showOutput } = this.state;
     return (
       <div className="row card-box d-flex justify-content-between mb-3 mt-5">
         <div className="col-12 justify-content-between">
@@ -112,6 +114,7 @@ class AddInput extends Component {
                   <SeparatorOptions
                     data={this.state}
                     handleChange={this.onChange}
+                    onCheckSort={this.onCheckSort}
                   />
                 ) : null}
               </div>
