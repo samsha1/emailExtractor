@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import TextAreaFieldGroup from "./common/TextAreaFieldGroup";
 import Button from "@material-ui/core/Button";
+import Switch from "@material-ui/core/Switch";
+import SeparatorOptions from "./SeparatorOptions";
 
 class AddInput extends Component {
   constructor() {
@@ -11,6 +13,8 @@ class AddInput extends Component {
       disabled: true,
       errors: {},
       isLoading: "",
+      showOutput: true,
+      separator: "",
     };
     this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
@@ -31,6 +35,12 @@ class AddInput extends Component {
     }
   };
 
+  onCheck = (e) => {
+    this.setState({
+      showOutput: !this.state.showOutput,
+    });
+  };
+
   validate = () => {
     let isError = false;
     //clear form error everytime they submit
@@ -47,7 +57,14 @@ class AddInput extends Component {
     return isError;
   };
   render() {
-    const { errors, inputText, outputText, disabled } = this.state;
+    const {
+      errors,
+      inputText,
+      outputText,
+      disabled,
+      showOutput,
+      separator,
+    } = this.state;
     return (
       <div className="row card-box d-flex justify-content-between mb-3 mt-5">
         <div className="col-12 justify-content-between">
@@ -77,6 +94,26 @@ class AddInput extends Component {
                   info="Copy Output"
                   rows="6"
                 />
+              </div>
+            </div>
+            <div className="row">
+              <div className="col-12">
+                <div className="d-flex">
+                  <h4>Output Options:</h4>
+                  <Switch
+                    checked={showOutput}
+                    onChange={this.onCheck}
+                    color="primary"
+                    name="checkedB"
+                    inputProps={{ "aria-label": "primary checkbox" }}
+                  />
+                </div>
+                {showOutput ? (
+                  <SeparatorOptions
+                    data={this.state}
+                    handleChange={this.onChange}
+                  />
+                ) : null}
               </div>
             </div>
             <Button
