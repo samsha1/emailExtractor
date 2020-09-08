@@ -8,6 +8,7 @@ class AddInput extends Component {
     this.state = {
       inputText: "",
       outputText: "",
+      disabled: true,
       errors: {},
       isLoading: "",
     };
@@ -20,19 +21,20 @@ class AddInput extends Component {
   };
 
   onSubmit = (e) => {
+    e.preventDefault();
     let isError = this.validate();
     if (!isError) {
       let rawemail = this.state.inputText
         .toLowerCase()
         .match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi);
-      this.setState({ outputText: rawemail });
+      this.setState({ outputText: rawemail === null ? "" : rawemail });
     }
   };
 
   validate = () => {
     let isError = false;
     //clear form error everytime they submit
-    this.setState({ errors: {} });
+    this.setState({ errors: {}, outputText: "" });
     const formErr = {};
 
     if (this.state.inputText.length === 0) {
@@ -45,44 +47,48 @@ class AddInput extends Component {
     return isError;
   };
   render() {
-    const { errors, inputText, outputText } = this.state;
+    const { errors, inputText, outputText, disabled } = this.state;
     return (
       <div className="row card-box d-flex justify-content-between mb-3 mt-5">
         <div className="col-12 justify-content-between">
-          <div className="row">
-            <div className="col-6">
-              <TextAreaFieldGroup
-                placeholder="Input Window"
-                name="inputText"
-                value={inputText}
-                onChange={this.onChange}
-                error={errors.inputText}
-                info="Paste Input"
-                rows="6"
-              />
+          <form onSubmit={this.onSubmit} noValidate>
+            <div className="row">
+              <div className="col-6">
+                <TextAreaFieldGroup
+                  placeholder="Input Window"
+                  name="inputText"
+                  id="inputText"
+                  value={inputText}
+                  onChange={this.onChange}
+                  error={errors.inputText}
+                  info="Paste Input"
+                  rows="6"
+                />
+              </div>
+              <div className="col-6">
+                <TextAreaFieldGroup
+                  placeholder="Output Window"
+                  name="outputText"
+                  id="outputText"
+                  value={outputText}
+                  onChange={this.onChange}
+                  error={errors.outputText}
+                  disabled={disabled}
+                  info="Copy Output"
+                  rows="6"
+                />
+              </div>
             </div>
-            <div className="col-6">
-              <TextAreaFieldGroup
-                placeholder="Output Window"
-                name="outputText"
-                value={outputText}
-                onChange={this.onChange}
-                error={errors.outputText}
-                disabled="disabled"
-                info="Copy Output"
-                rows="6"
-              />
-            </div>
-          </div>
-          <Button
-            variant="contained"
-            size="large"
-            color="primary"
-            onClick={this.onSubmit}
-            fullWidth
-          >
-            Submit
-          </Button>
+            <Button
+              variant="contained"
+              type="Submit"
+              size="large"
+              color="primary"
+              fullWidth
+            >
+              Submit
+            </Button>
+          </form>
         </div>
       </div>
     );
