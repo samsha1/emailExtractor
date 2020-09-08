@@ -3,6 +3,7 @@ import TextAreaFieldGroup from "./common/TextAreaFieldGroup";
 import Button from "@material-ui/core/Button";
 import Switch from "@material-ui/core/Switch";
 import SeparatorOptions from "./SeparatorOptions";
+import FilterOptions from "./FilterOptions";
 
 class AddInput extends Component {
   constructor() {
@@ -10,13 +11,17 @@ class AddInput extends Component {
     this.state = {
       inputText: "",
       outputText: "",
+      limitEmail: "",
       disabled: true,
       errors: {},
       isLoading: "",
       showOutput: true,
+      showFilter: true,
       separator: "",
       otherSeparator: "",
+      getOnly: "",
       group: "",
+      addrContainingString: "",
       sort: false,
     };
     this.onChange = this.onChange.bind(this);
@@ -44,6 +49,12 @@ class AddInput extends Component {
     });
   };
 
+  onCheckFilter = (e) => {
+    this.setState({
+      showFilter: !this.state.showFilter,
+    });
+  };
+
   onCheckSort = (e) => {
     this.setState({
       sort: !this.state.sort,
@@ -66,7 +77,15 @@ class AddInput extends Component {
     return isError;
   };
   render() {
-    const { errors, inputText, outputText, disabled, showOutput } = this.state;
+    const {
+      errors,
+      inputText,
+      outputText,
+      disabled,
+      showOutput,
+      showFilter,
+      addrContainingString,
+    } = this.state;
     return (
       <div className="row card-box d-flex justify-content-between mb-3 mt-5">
         <div className="col-12 justify-content-between">
@@ -100,13 +119,13 @@ class AddInput extends Component {
             </div>
             <div className="row">
               <div className="col-12">
-                <div className="d-flex">
+                <div className="d-flex mt-4 justify-content-between">
                   <h4>Output Options:</h4>
                   <Switch
                     checked={showOutput}
                     onChange={this.onCheck}
                     color="primary"
-                    name="checkedB"
+                    name="showOutput"
                     inputProps={{ "aria-label": "primary checkbox" }}
                   />
                 </div>
@@ -119,15 +138,37 @@ class AddInput extends Component {
                 ) : null}
               </div>
             </div>
-            <Button
-              variant="contained"
-              type="Submit"
-              size="large"
-              color="primary"
-              fullWidth
-            >
-              Submit
-            </Button>
+            <div className="row">
+              <div className="col-12">
+                <div className="d-flex mt-4 justify-content-between">
+                  <h4>Filter Options:</h4>
+                  <Switch
+                    checked={showFilter}
+                    onChange={this.onCheckFilter}
+                    color="primary"
+                    name="showFilter"
+                    inputProps={{ "aria-label": "primary checkbox" }}
+                  />
+                </div>
+                {showFilter ? (
+                  <FilterOptions
+                    data={this.state}
+                    handleChange={this.onChange}
+                  />
+                ) : null}
+              </div>
+            </div>
+            <div className="mt-4">
+              <Button
+                variant="contained"
+                type="Submit"
+                size="large"
+                color="primary"
+                fullWidth
+              >
+                Submit
+              </Button>
+            </div>
           </form>
         </div>
       </div>
