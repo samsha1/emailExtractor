@@ -4,6 +4,9 @@ import Button from "@material-ui/core/Button";
 import Switch from "@material-ui/core/Switch";
 import SeparatorOptions from "./SeparatorOptions";
 import FilterOptions from "./FilterOptions";
+import FileCopyIcon from "@material-ui/icons/FileCopy";
+import IconButton from "@material-ui/core/IconButton";
+import Tooltip from "@material-ui/core/Tooltip";
 
 class AddInput extends Component {
   constructor() {
@@ -84,7 +87,6 @@ class AddInput extends Component {
       disabled,
       showOutput,
       showFilter,
-      addrContainingString,
     } = this.state;
     return (
       <div className="row card-box d-flex justify-content-between mb-3 mt-5">
@@ -103,7 +105,22 @@ class AddInput extends Component {
                   rows="6"
                 />
               </div>
-              <div className="col-6">
+              <div
+                className="col-6"
+                style={{ position: "relative", bottom: "25px" }}
+              >
+                <Tooltip
+                  title="Copy to clipboard"
+                  style={{
+                    float: "right",
+                    position: "relative",
+                    top: "40px",
+                  }}
+                >
+                  <IconButton aria-label="Copy to clipboard">
+                    <FileCopyIcon color="action" fontSize="small" />
+                  </IconButton>
+                </Tooltip>
                 <TextAreaFieldGroup
                   placeholder="Output Window"
                   name="outputText"
