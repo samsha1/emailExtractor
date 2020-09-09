@@ -7,6 +7,8 @@ import FilterOptions from "./FilterOptions";
 import FileCopyIcon from "@material-ui/icons/FileCopy";
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
+import { CopyToClipboard } from "react-copy-to-clipboard";
+import AlertsPop from "./common/AlertsPop";
 
 class AddInput extends Component {
   constructor() {
@@ -26,6 +28,7 @@ class AddInput extends Component {
       group: "",
       addrContainingString: "",
       sort: false,
+      copied: false,
     };
     this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
@@ -58,6 +61,12 @@ class AddInput extends Component {
     });
   };
 
+  handleClipboard = () => {
+    this.setState({
+      copied: !this.state.copied,
+    });
+  };
+
   onCheckSort = (e) => {
     this.setState({
       sort: !this.state.sort,
@@ -87,10 +96,12 @@ class AddInput extends Component {
       disabled,
       showOutput,
       showFilter,
+      copied,
     } = this.state;
     return (
       <div className="row card-box d-flex justify-content-between mb-3 mt-5">
         <div className="col-12 justify-content-between">
+          {copied ? <AlertsPop handleClipboard={this.handleClipboard} /> : ""}
           <form onSubmit={this.onSubmit} noValidate>
             <div className="row">
               <div className="col-6">
@@ -109,18 +120,23 @@ class AddInput extends Component {
                 className="col-6"
                 style={{ position: "relative", bottom: "25px" }}
               >
-                <Tooltip
-                  title="Copy to clipboard"
-                  style={{
-                    float: "right",
-                    position: "relative",
-                    top: "40px",
-                  }}
+                <CopyToClipboard
+                  text={this.state.outputText}
+                  onCopy={() => this.setState({ copied: true })}
                 >
-                  <IconButton aria-label="Copy to clipboard">
-                    <FileCopyIcon color="action" fontSize="small" />
-                  </IconButton>
-                </Tooltip>
+                  <Tooltip
+                    title="Copy to clipboard"
+                    style={{
+                      float: "right",
+                      position: "relative",
+                      top: "40px",
+                    }}
+                  >
+                    <IconButton aria-label="Copy to clipboard">
+                      <FileCopyIcon color="action" fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </CopyToClipboard>
                 <TextAreaFieldGroup
                   placeholder="Output Window"
                   name="outputText"
