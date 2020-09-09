@@ -73,6 +73,12 @@ class AddInput extends Component {
     });
   };
 
+  setErrors = (errors) => {
+    this.setState({
+      errors,
+    });
+  };
+
   validate = () => {
     let isError = false;
     //clear form error everytime they submit
@@ -88,6 +94,7 @@ class AddInput extends Component {
 
     return isError;
   };
+
   render() {
     const {
       errors,
@@ -113,7 +120,7 @@ class AddInput extends Component {
                   onChange={this.onChange}
                   error={errors.inputText}
                   info="Paste Input"
-                  rows="6"
+                  rows="18"
                 />
               </div>
               <div
@@ -146,7 +153,7 @@ class AddInput extends Component {
                   error={errors.outputText}
                   disabled={disabled}
                   info="Copy Output"
-                  rows="6"
+                  rows="18"
                 />
               </div>
             </div>
@@ -187,6 +194,7 @@ class AddInput extends Component {
                   <FilterOptions
                     data={this.state}
                     handleChange={this.onChange}
+                    setErrors={this.setErrors}
                   />
                 ) : null}
               </div>

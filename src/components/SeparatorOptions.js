@@ -27,8 +27,9 @@ const SeparatorOptions = (props) => {
       <div>
         <FormControl
           variant="outlined"
-          style={{ minWidth: 115 }}
+          style={{ minWidth: 120 }}
           className="mb-2"
+          margin="dense"
         >
           <InputLabel id="demo-simple-select-outlined-label">
             Separator

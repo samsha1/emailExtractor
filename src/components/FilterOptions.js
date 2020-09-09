@@ -7,15 +7,34 @@ import TextField from "@material-ui/core/TextField";
 
 const FilterOptions = (props) => {
   const handleChange = (e) => {
-    props.handleChange(e);
+    const onValidate = OnChangeValidate(e);
+    if (!onValidate) {
+      props.handleChange(e);
+    }
+  };
+
+  const OnChangeValidate = (e) => {
+    let isError = false;
+    // this.setState({ errors: {} });
+    const formErr = {};
+
+    if (e.target.value.length > 4) {
+      isError = true;
+      formErr.limitEmail = "4 digits max.";
+    }
+
+    // this.setState({ errors: formErr });
+    props.setErrors(formErr);
+
+    return isError;
   };
   return (
     <div className="d-flex">
       <div>
         <FormControl
           variant="outlined"
-          style={{ minWidth: 115 }}
-          className="mb-2"
+          style={{ minWidth: 120 }}
+          margin="dense"
         >
           <InputLabel id="demo-simple-select-outlined-label">Choose</InputLabel>
           <Select
@@ -43,7 +62,8 @@ const FilterOptions = (props) => {
       </div>
       <div className="ml-4">
         <TextField
-          id="outlined-number"
+          error = {(props.data.errors.limitEmail ? true : false)}
+          id="outlined-error-helper-text"
           label="Limit email per domain"
           type="number"
           name="limitEmail"
@@ -51,7 +71,9 @@ const FilterOptions = (props) => {
           InputLabelProps={{
             shrink: true,
           }}
+          value={props.data.limitEmail}
           variant="outlined"
+          helperText={props.data.errors.limitEmail}
         />
       </div>
     </div>

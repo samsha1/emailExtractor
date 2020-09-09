@@ -28,6 +28,7 @@ const TextAreaFieldGroup = ({
         id={id}
         disabled={disabled}
         rows={rows}
+        style={{ fontSize: "12px"}}
       />
       {info && <small className="form-text text-muted">{info}</small>}
       {error && <div className="invalid-feedback">{error}</div>}
