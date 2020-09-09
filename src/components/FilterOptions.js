@@ -14,7 +14,7 @@ const FilterOptions = (props) => {
       <div>
         <FormControl
           variant="outlined"
-          style={{ minWidth: 180 }}
+          style={{ minWidth: 115 }}
           className="mb-2"
         >
           <InputLabel id="demo-simple-select-outlined-label">Choose</InputLabel>

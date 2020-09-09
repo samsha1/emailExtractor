@@ -152,7 +152,7 @@ class AddInput extends Component {
             </div>
             <div className="row">
               <div className="col-12">
-                <div className="d-flex mt-4 justify-content-between">
+                <div className="d-flex mt-4">
                   <h4>Output Options:</h4>
                   <Switch
                     checked={showOutput}
@@ -173,7 +173,7 @@ class AddInput extends Component {
             </div>
             <div className="row">
               <div className="col-12">
-                <div className="d-flex mt-4 justify-content-between">
+                <div className="d-flex mt-4">
                   <h4>Filter Options:</h4>
                   <Switch
                     checked={showFilter}

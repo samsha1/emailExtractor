@@ -15,7 +15,7 @@ const SeparatorOptions = (props) => {
     <div className="ml-4 mt-1">
       <TextField
         id="standard-basic"
-        label="Other Separator"
+        label="Enter Separator"
         name="otherSeparator"
         value={props.data.otherSeparator}
         onChange={handleChange}
@@ -27,7 +27,7 @@ const SeparatorOptions = (props) => {
       <div>
         <FormControl
           variant="outlined"
-          style={{ minWidth: 180 }}
+          style={{ minWidth: 115 }}
           className="mb-2"
         >
           <InputLabel id="demo-simple-select-outlined-label">
