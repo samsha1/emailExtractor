@@ -160,7 +160,7 @@ class AddInput extends Component {
             </div>
             <div className="row">
               <div className="col-12">
-                <div className="d-flex mt-4">
+                <div className="d-flex">
                   <Title>Output Options:</Title>
                   <Switch
                     checked={showOutput}
@@ -181,7 +181,7 @@ class AddInput extends Component {
             </div>
             <div className="row">
               <div className="col-12">
-                <div className="d-flex mt-4">
+                <div className="d-flex">
                   <Title>Filter Options:</Title>
                   <Switch
                     checked={showFilter}

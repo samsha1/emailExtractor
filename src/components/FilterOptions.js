@@ -22,6 +22,11 @@ const FilterOptions = (props) => {
     // this.setState({ errors: {} });
     const formErr = {};
 
+    if (!e.target.value.match(/^\d*(\d+)?$/)) {
+      isError = true;
+      formErr.limitEmail = "Enter valid number";
+    }
+
     if (e.target.value.length > 4) {
       isError = true;
       formErr.limitEmail = "4 digits max.";
@@ -69,7 +74,7 @@ const FilterOptions = (props) => {
           error={props.data.errors.limitEmail ? true : false}
           id="outlined-error-helper-text"
           label="Limit email per domain"
-          type="number"
+          type="text"
           name="limitEmail"
           onChange={handleChange}
           InputLabelProps={{
