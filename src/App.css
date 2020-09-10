@@ -2,15 +2,15 @@
   margin: 0;
 }
 
-.card-box {
-  background-color: #fff;
-  padding: 40px 10px;
-  box-shadow: 0px 0px 8px 1px #cccccc;
-  border-radius: 2px;
+.App {
+  font-family: sans-serif;
+  text-align: center;
+  padding: 4rem;
 }
+
 
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
+  -webkit-appearance: none !important;
   margin: 0;
 }

@@ -10,7 +10,7 @@ import AddInput from "./components/AddInput";
 export default function ElevateAppBar(props) {
   return (
     <React.Fragment>
-      <CssBaseline />
+      {/* <CssBaseline /> */}
       <AppBar>
         <Toolbar>
           <Typography variant="h6">Advanced Email Sorter V1</Typography>

@@ -13,6 +13,10 @@ const FilterOptions = (props) => {
     }
   };
 
+  const handleChangeSelect = (e) => {
+    props.handleChange(e);
+  };
+
   const OnChangeValidate = (e) => {
     let isError = false;
     // this.setState({ errors: {} });
@@ -42,7 +46,7 @@ const FilterOptions = (props) => {
             id="demo-simple-select-outlined"
             value={props.data.getOnly}
             name="getOnly"
-            onChange={handleChange}
+            onChange={handleChangeSelect}
             label="Choose"
           >
             <MenuItem value="only">Only</MenuItem>
@@ -62,7 +66,7 @@ const FilterOptions = (props) => {
       </div>
       <div className="ml-4">
         <TextField
-          error = {(props.data.errors.limitEmail ? true : false)}
+          error={props.data.errors.limitEmail ? true : false}
           id="outlined-error-helper-text"
           label="Limit email per domain"
           type="number"

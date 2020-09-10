@@ -9,6 +9,7 @@ import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import AlertsPop from "./common/AlertsPop";
+import Title from "../components/common/Title";
 
 class AddInput extends Component {
   constructor() {
@@ -106,8 +107,8 @@ class AddInput extends Component {
       copied,
     } = this.state;
     return (
-      <div className="row card-box d-flex justify-content-between mb-3 mt-5">
-        <div className="col-12 justify-content-between">
+      <div className="row">
+        <div className="col-12">
           {copied ? <AlertsPop handleClipboard={this.handleClipboard} /> : ""}
           <form onSubmit={this.onSubmit} noValidate>
             <div className="row">
@@ -140,7 +141,7 @@ class AddInput extends Component {
                     }}
                   >
                     <IconButton aria-label="Copy to clipboard">
-                      <FileCopyIcon color="action" fontSize="small" />
+                      <FileCopyIcon color="primary" fontSize="small" />
                     </IconButton>
                   </Tooltip>
                 </CopyToClipboard>
@@ -160,7 +161,7 @@ class AddInput extends Component {
             <div className="row">
               <div className="col-12">
                 <div className="d-flex mt-4">
-                  <h4>Output Options:</h4>
+                  <Title>Output Options:</Title>
                   <Switch
                     checked={showOutput}
                     onChange={this.onCheck}
@@ -181,7 +182,7 @@ class AddInput extends Component {
             <div className="row">
               <div className="col-12">
                 <div className="d-flex mt-4">
-                  <h4>Filter Options:</h4>
+                  <Title>Filter Options:</Title>
                   <Switch
                     checked={showFilter}
                     onChange={this.onCheckFilter}
