@@ -69,6 +69,11 @@ export default function Dashboard() {
         main: mainSecondaryColor,
       },
     },
+    typography: {
+      button: {
+        textTransform: "none",
+      },
+    },
   });
   const classes = useStyles();
   const handleThemeChange = () => {

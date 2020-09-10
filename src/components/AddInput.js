@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import TextAreaFieldGroup from "./common/TextAreaFieldGroup";
-import Button from "@material-ui/core/Button";
 import Switch from "@material-ui/core/Switch";
 import SeparatorOptions from "./SeparatorOptions";
 import FilterOptions from "./FilterOptions";
@@ -10,6 +9,8 @@ import Tooltip from "@material-ui/core/Tooltip";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import AlertsPop from "./common/AlertsPop";
 import Title from "../components/common/Title";
+import PublishIcon from "@material-ui/icons/Publish";
+import { Fab, Button } from "@material-ui/core";
 
 class AddInput extends Component {
   constructor() {
@@ -200,15 +201,37 @@ class AddInput extends Component {
                 ) : null}
               </div>
             </div>
+            <div className="d-flex mt-4">
+              <Title>Have Large Text?</Title>
+              <span className="ml-3">
+                <label htmlFor="upload-File">
+                  <input
+                    style={{ display: "none" }}
+                    id="upload-File"
+                    name="upload-File"
+                    type="file"
+                  />
+
+                  <Fab
+                    color="primary"
+                    size="small"
+                    component="span"
+                    aria-label="add"
+                    variant="extended"
+                  >
+                    <PublishIcon /> Upload File
+                  </Fab>
+                </label>
+              </span>
+            </div>
             <div className="mt-4">
               <Button
                 variant="contained"
                 type="Submit"
                 size="large"
                 color="primary"
-                fullWidth
               >
-                Submit
+                Extract
               </Button>
             </div>
           </form>

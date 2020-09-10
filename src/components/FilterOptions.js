@@ -4,6 +4,8 @@ import InputLabel from "@material-ui/core/InputLabel";
 import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
 import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
+
 
 const FilterOptions = (props) => {
   const handleChange = (e) => {
@@ -39,27 +41,23 @@ const FilterOptions = (props) => {
   };
   return (
     <div className="d-flex">
-      <div>
-        <FormControl
-          variant="outlined"
-          style={{ minWidth: 120 }}
-          margin="dense"
+      <FormControl variant="outlined" style={{ minWidth: 120 }} margin="dense">
+        <InputLabel id="demo-simple-select-outlined-label">Choose</InputLabel>
+        <Select
+          labelId="demo-simple-select-outlined-label-1"
+          id="demo-simple-select-outlined"
+          value={props.data.getOnly}
+          name="getOnly"
+          onChange={handleChangeSelect}
+          label="Choose"
         >
-          <InputLabel id="demo-simple-select-outlined-label">Choose</InputLabel>
-          <Select
-            labelId="demo-simple-select-outlined-label-1"
-            id="demo-simple-select-outlined"
-            value={props.data.getOnly}
-            name="getOnly"
-            onChange={handleChangeSelect}
-            label="Choose"
-          >
-            <MenuItem value="only">Only</MenuItem>
-            <MenuItem value="donot">Do Not</MenuItem>
-          </Select>
-        </FormControl>
-      </div>
-      <p className="ml-2 mt-auto">extract address containing this string:</p>
+          <MenuItem value="only">Only</MenuItem>
+          <MenuItem value="donot">Do Not</MenuItem>
+        </Select>
+      </FormControl>
+      <Typography component="p" variant="caption" style={{position:"relative",top:"30px",textIndent:"10px"}}>
+        extract address containing this string:
+      </Typography>
       <div className="ml-4">
         <TextField
           id="standard-basic"
