@@ -10,6 +10,7 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 import AlertsPop from "./common/AlertsPop";
 import Title from "../components/common/Title";
 import PublishIcon from "@material-ui/icons/Publish";
+import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 import { Fab, Button } from "@material-ui/core";
 
 class AddInput extends Component {
@@ -157,6 +158,15 @@ class AddInput extends Component {
                   info="Copy Output"
                   rows="18"
                 />
+                <div style={{ float: "right" }} className="m-0">
+                  <Button variant="contained" size="medium" color="primary">
+                    <CloudDownloadIcon />{" "}
+                    <span style={{ position: "relative", left: "6px" }}>
+                      {" "}
+                      Download (10)
+                    </span>
+                  </Button>
+                </div>
               </div>
             </div>
             <div className="row">
