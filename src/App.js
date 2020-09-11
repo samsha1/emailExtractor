@@ -52,6 +52,9 @@ const useStyles = makeStyles((theme) => ({
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4),
   },
+  button: {
+    margin: theme.spacing(2),
+  },
 }));
 
 export default function Dashboard() {

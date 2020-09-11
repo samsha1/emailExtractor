@@ -159,12 +159,14 @@ class AddInput extends Component {
                   rows="18"
                 />
                 <div style={{ float: "right" }} className="m-0">
-                  <Button variant="contained" size="medium" color="primary">
-                    <CloudDownloadIcon />{" "}
-                    <span style={{ position: "relative", left: "6px" }}>
-                      {" "}
-                      Download (10)
-                    </span>
+                  <Button
+                    variant="contained"
+                    size="medium"
+                    color="primary"
+                    startIcon={<CloudDownloadIcon />}
+                  >
+                    {" "}
+                    Download (10)
                   </Button>
                 </div>
               </div>
@@ -242,6 +244,15 @@ class AddInput extends Component {
                 color="primary"
               >
                 Extract
+              </Button>
+              <Button
+                variant="contained"
+                type="button"
+                size="large"
+                color="primary"
+                className="ml-2"
+              >
+                Validate
               </Button>
             </div>
           </form>
