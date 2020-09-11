@@ -42,12 +42,9 @@ const SeparatorOptions = (props) => {
             onChange={handleChange}
             label="Separator"
           >
-            <MenuItem value="">
-              <em>None</em>
-            </MenuItem>
-            <MenuItem value="comma">Comma</MenuItem>
-            <MenuItem value="pipe">Pipe</MenuItem>
-            <MenuItem value="colon">Colon</MenuItem>
+            <MenuItem value=",">Comma</MenuItem>
+            <MenuItem value="|">Pipe</MenuItem>
+            <MenuItem value=";">Colon</MenuItem>
             <MenuItem value="newline">New Line</MenuItem>
             <MenuItem value="other">Other</MenuItem>
           </Select>

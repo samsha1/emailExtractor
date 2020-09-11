@@ -25,7 +25,7 @@ class AddInput extends Component {
       isLoading: "",
       showOutput: true,
       showFilter: true,
-      separator: "",
+      separator: ",",
       otherSeparator: "",
       getOnly: "",
       group: "",
@@ -35,6 +35,10 @@ class AddInput extends Component {
     };
     this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
+    this.onCheck = this.onCheck.bind(this);
+    this.onCheckFilter = this.onCheckFilter.bind(this);
+    this.setErrors = this.setErrors.bind(this);
+    this.onCheckSort = this.onCheckSort.bind(this);
   }
 
   onChange = (e) => {
@@ -43,12 +47,75 @@ class AddInput extends Component {
 
   onSubmit = (e) => {
     e.preventDefault();
+    // var outputText = this.state.outputText;
+    var a = 0;
+    var ingroup = 0;
+    var groupby = Math.round(this.state.group);
+    let string = this.state.addrContainingString;
     let isError = this.validate();
+    var separator = this.state.separator;
     if (!isError) {
-      let rawemail = this.state.inputText
+      var rawemail = this.state.inputText
         .toLowerCase()
         .match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi);
-      this.setState({ outputText: rawemail === null ? "" : rawemail });
+      //this.setState({ outputText: rawemail === null ? "" : rawemail });
+      if (separator === "newline") separator = "\n";
+      if (separator === "other") separator = this.state.otherSeparator;
+      var norepeat = [];
+      var filtermail = [];
+      if (rawemail) {
+        if (string) {
+          let x = 0;
+          for (var y = 0; y < rawemail.length; y++) {
+            if (this.state.getOnly === "only") {
+              if (rawemail[y].search(string) >= 0) {
+                filtermail[x] = rawemail[y];
+                x++;
+              }
+            } else {
+              if (rawemail[y].search(string) < 0) {
+                filtermail[x] = rawemail[y];
+                x++;
+              }
+            }
+          }
+          rawemail = filtermail;
+        }
+        for (var i = 0; i < rawemail.length; i++) {
+          var repeat = 0;
+
+          // Check for repeated emails routine
+          for (var j = i + 1; j < rawemail.length; j++) {
+            if (rawemail[i] === rawemail[j]) {
+              repeat++;
+            }
+          }
+
+          // Create new array for non-repeated emails
+          if (repeat === 0) {
+            norepeat[a] = rawemail[i];
+            a++;
+          }
+        }
+
+        if (this.state.sort) norepeat = norepeat.sort();
+        var email = "";
+        // Join emails together with separator
+        for (var k = 0; k < norepeat.length; k++) {
+          if (ingroup !== 0) email += separator;
+          email += norepeat[k];
+          ingroup++;
+
+          // Group emails if a number is specified in form. Each group will be separate by new line.
+          if (groupby) {
+            if (ingroup === groupby) {
+              email += "\n\n";
+              ingroup = 0;
+            }
+          }
+        }
+      }
+      this.setState({ outputText: email });
     }
   };
 

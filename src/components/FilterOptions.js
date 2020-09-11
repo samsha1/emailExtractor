@@ -6,10 +6,9 @@ import Select from "@material-ui/core/Select";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 
-
 const FilterOptions = (props) => {
   const handleChange = (e) => {
-    const onValidate = OnChangeValidate(e);
+    const onValidate = OnChangeValidate();
     if (!onValidate) {
       props.handleChange(e);
     }
@@ -19,17 +18,17 @@ const FilterOptions = (props) => {
     props.handleChange(e);
   };
 
-  const OnChangeValidate = (e) => {
+  const OnChangeValidate = () => {
     let isError = false;
     // this.setState({ errors: {} });
     const formErr = {};
 
-    if (!e.target.value.match(/^\d*(\d+)?$/)) {
+    if (!props.data.limitEmail.match(/^\d*(\d+)?$/)) {
       isError = true;
       formErr.limitEmail = "Enter valid number";
     }
 
-    if (e.target.value.length > 4) {
+    if (props.data.limitEmail.length > 4) {
       isError = true;
       formErr.limitEmail = "4 digits max.";
     }
@@ -55,7 +54,11 @@ const FilterOptions = (props) => {
           <MenuItem value="donot">Do Not</MenuItem>
         </Select>
       </FormControl>
-      <Typography component="p" variant="caption" style={{position:"relative",top:"30px",textIndent:"10px"}}>
+      <Typography
+        component="p"
+        variant="caption"
+        style={{ position: "relative", top: "30px", textIndent: "10px" }}
+      >
         extract address containing this string:
       </Typography>
       <div className="ml-4">
