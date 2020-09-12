@@ -12,6 +12,9 @@ import Title from "../components/common/Title";
 import PublishIcon from "@material-ui/icons/Publish";
 import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 import { Fab, Button } from "@material-ui/core";
+import Typography from "@material-ui/core/Typography";
+import axios from "axios";
+import ProcessDialog from "./common/ProcessDialog";
 
 class AddInput extends Component {
   constructor() {
@@ -32,6 +35,9 @@ class AddInput extends Component {
       addrContainingString: "",
       sort: false,
       copied: false,
+      selectedFile: null,
+      uploadLoading: false,
+      openDialog: false,
     };
     this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
@@ -45,6 +51,39 @@ class AddInput extends Component {
     this.setState({ [e.target.name]: e.target.value });
   };
 
+  onChangeFile = (e) => {
+    var _validFileExtensions = ["txt"];
+    var fileName = e.target.files[0].name;
+    if (fileName.length > 0) {
+      var blnValid = false;
+      for (var j = 0; j < _validFileExtensions.length; j++) {
+        var sCurExtension = _validFileExtensions[j];
+        if (
+          fileName
+            .substr(
+              fileName.length - sCurExtension.length,
+              sCurExtension.length
+            )
+            .toLowerCase() == sCurExtension.toLowerCase()
+        ) {
+          blnValid = true;
+          break;
+        }
+      }
+      if (!blnValid) {
+        alert(
+          "Sorry, " +
+            fileName +
+            " is invalid, allowed extensions are: " +
+            _validFileExtensions.join(", ")
+        );
+        return false;
+      }
+    }
+
+    this.setState({ selectedFile: e.target.files[0] });
+  };
+
   onSubmit = (e) => {
     e.preventDefault();
     // var outputText = this.state.outputText;
@@ -55,6 +94,16 @@ class AddInput extends Component {
     let isError = this.validate();
     var separator = this.state.separator;
     if (!isError) {
+      if (this.state.selectedFile) {
+        this.setState({ uploadLoading: true, openDialog: true });
+        const data = new FormData();
+        data.append("file", this.state.selectedFile);
+        axios
+          .post("api/upload/", data, {})
+          .then((res) => this.setState({ uploadLoading: false }))
+          .catch((err) => console.log(err));
+        return true;
+      }
       var rawemail = this.state.inputText
         .toLowerCase()
         .match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi);
@@ -149,17 +198,27 @@ class AddInput extends Component {
     });
   };
 
+  handleDialog = (value) => {
+    // const { key, val } = value;
+    // console.log(value);
+    this.setState(value);
+  };
+
   validate = () => {
     let isError = false;
     //clear form error everytime they submit
     this.setState({ errors: {}, outputText: "" });
     const formErr = {};
 
-    if (this.state.inputText.length === 0) {
+    if (this.state.inputText.length === 0 && !this.state.selectedFile) {
       isError = true;
       formErr.inputText = true;
     }
 
+    if (this.state.inputText.length > 0 && this.state.selectedFile) {
+      isError = true;
+      formErr.inputText = "Please select one way of input text/file";
+    }
     this.setState({ errors: formErr });
 
     return isError;
@@ -174,10 +233,20 @@ class AddInput extends Component {
       showOutput,
       showFilter,
       copied,
+      selectedFile,
+      openDialog,
     } = this.state;
     return (
       <div className="row">
         <div className="col-12">
+          {openDialog ? (
+            <ProcessDialog
+              openDialog={openDialog}
+              handleDialog={this.handleDialog}
+            />
+          ) : (
+            ""
+          )}
           {copied ? <AlertsPop handleClipboard={this.handleClipboard} /> : ""}
           <form onSubmit={this.onSubmit} noValidate>
             <div className="row">
@@ -289,6 +358,7 @@ class AddInput extends Component {
                     id="upload-File"
                     name="upload-File"
                     type="file"
+                    onChange={this.onChangeFile}
                   />
 
                   <Fab
@@ -302,6 +372,17 @@ class AddInput extends Component {
                   </Fab>
                 </label>
               </span>
+              <Typography
+                component="p"
+                variant="caption"
+                style={{
+                  position: "relative",
+                  top: "10px",
+                  textIndent: "10px",
+                }}
+              >
+                {selectedFile ? selectedFile.name : null}
+              </Typography>
             </div>
             <div className="mt-4">
               <Button
