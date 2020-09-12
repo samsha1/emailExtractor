@@ -8,7 +8,7 @@ import Typography from "@material-ui/core/Typography";
 
 const FilterOptions = (props) => {
   const handleChange = (e) => {
-    const onValidate = OnChangeValidate();
+    const onValidate = OnChangeValidate(e);
     if (!onValidate) {
       props.handleChange(e);
     }
@@ -18,17 +18,35 @@ const FilterOptions = (props) => {
     props.handleChange(e);
   };
 
-  const OnChangeValidate = () => {
+  const handleChangeAddrString = (e) => {
+    let isError = false;
+    // this.setState({ errors: {} });
+    const formErr = {};
+    if (e.target.value.length > 10) {
+      isError = true;
+      formErr.addrContainingString = "String Limited to length 10";
+    }
+
+    props.setErrors(formErr);
+
+    if (isError) {
+      return isError;
+    }
+
+    return props.handleChange(e);
+  };
+
+  const OnChangeValidate = (e) => {
     let isError = false;
     // this.setState({ errors: {} });
     const formErr = {};
 
-    if (!props.data.limitEmail.match(/^\d*(\d+)?$/)) {
+    if (!e.target.value.match(/^\d*(\d+)?$/)) {
       isError = true;
       formErr.limitEmail = "Enter valid number";
     }
 
-    if (props.data.limitEmail.length > 4) {
+    if (e.target.value.length > 4) {
       isError = true;
       formErr.limitEmail = "4 digits max.";
     }
@@ -63,11 +81,13 @@ const FilterOptions = (props) => {
       </Typography>
       <div className="ml-4">
         <TextField
+          error={props.data.errors.addrContainingString ? true : false}
           id="standard-basic"
           label="Enter a Text"
           name="addrContainingString"
           value={props.data.addrContainingString}
-          onChange={handleChange}
+          onChange={handleChangeAddrString}
+          helperText={props.data.errors.addrContainingString}
         />
       </div>
       <div className="ml-4">
