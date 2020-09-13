@@ -6,12 +6,11 @@ import FilterOptions from "./FilterOptions";
 import FileCopyIcon from "@material-ui/icons/FileCopy";
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
-import { Link } from "react-router-dom";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import AlertsPop from "./common/AlertsPop";
 import Title from "../components/common/Title";
+import DownloadButton from "../components/common/DownloadButton";
 import PublishIcon from "@material-ui/icons/Publish";
-import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 import { Fab, Button, CircularProgress } from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import axios from "axios";
@@ -38,6 +37,7 @@ class AddInput extends Component {
       selectedFile: null,
       uploadLoading: false,
       counter: 0,
+      filepath:"",
     };
     this.onChange = this.onChange.bind(this);
     //this.onSubmitHandler = this.onSubmitHandler.bind(this);
@@ -114,10 +114,11 @@ class AddInput extends Component {
               uploadLoading: false,
               outputText: res.data.emails,
               counter: res.data.totalemails,
+              filepath:res.data.filepath,
             })
           )
           .catch((err) => console.log(err));
-        //return true;
+          return true;
       }
       var rawemail = this.state.inputText
         .toLowerCase()
@@ -252,6 +253,7 @@ class AddInput extends Component {
       selectedFile,
       uploadLoading,
       counter,
+      filepath
     } = this.state;
     return (
       <div className="row">
@@ -303,7 +305,7 @@ class AddInput extends Component {
                   info="Copy Output"
                   rows="18"
                 />
-                
+                {counter ? <DownloadButton counter={counter} filepath={filepath}/> : ""}
               </div>
             </div>
             <div className="row">

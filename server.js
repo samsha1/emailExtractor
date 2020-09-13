@@ -5,6 +5,7 @@ const fs = require("fs-extra");
 ///const formidable = require('express-formidable');
 
 const app = express();
+const getTodayDate = Date.now();
 
 //Body Parser Middleware
 //app.use(formidable());
@@ -16,34 +17,36 @@ const app = express();
 //     highWaterMark: 2 * 1024 * 1024, // Set 2MiB buffer
 //   })
 // ); // Insert the busboy middle-ware
-const uploadPath = path.join(__dirname, "src/textFiles"); // Register the upload path
+const uploadPath = path.join(__dirname, "public/textFiles"); // Register the upload path
 fs.ensureDir(uploadPath); // Make sure that he upload path exits
 
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "src/textFiles");
+    cb(null, "public/textFiles");
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
+    cb(null, getTodayDate + "-" + file.originalname);
   },
 });
 
 var upload = multer({ storage }).single("file");
 
 app.post("/api/upload", upload, async (req, res, next) => {
-  console.log("File Upload Processing");
   const file = req.file;
   var meta = req.body;
-  console.log(meta);
   const absolutePath = path.join(__dirname, file.path);
-  console.log("Parsing Emails");
   const getEmail = await readLargeFile(absolutePath, meta);
-  console.log(getEmail[1]);
-  console.log("Parsed Emails");
+  const newFile = "public/textFiles/" + Date.now() + "-ext-" + file.originalname;
+  if (getEmail[1] > 0)
+    await fs.writeFileSync(
+      newFile,
+      getEmail[0]
+    );
+
   return res.status(200).json({
     success: "true",
     message: "File Uploaded Successfully!",
-    filename: req.file.originalname,
+    filepath: newFile,
     emails: getEmail[0],
     totalemails: getEmail[1],
   });
@@ -80,8 +83,6 @@ function readLargeFile(absolutePath, meta) {
       }
       rawemail = filtermail;
     }
-
-    console.log(rawemail.length);
 
     for (var i = 0; i < rawemail.length; i++) {
       var repeat = 0;
