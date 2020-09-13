@@ -43,8 +43,8 @@ const SeparatorOptions = (props) => {
             label="Separator"
           >
             <MenuItem value=",">Comma</MenuItem>
-            <MenuItem value="|">Pipe</MenuItem>
-            <MenuItem value=";">Colon</MenuItem>
+            <MenuItem value=" | ">Pipe</MenuItem>
+            <MenuItem value="; ">Colon</MenuItem>
             <MenuItem value="newline">New Line</MenuItem>
             <MenuItem value="other">Other</MenuItem>
           </Select>

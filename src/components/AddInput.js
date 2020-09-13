@@ -14,7 +14,6 @@ import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 import { Fab, Button } from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import axios from "axios";
-import ProcessDialog from "./common/ProcessDialog";
 
 class AddInput extends Component {
   constructor() {
@@ -37,22 +36,17 @@ class AddInput extends Component {
       copied: false,
       selectedFile: null,
       uploadLoading: false,
-      openDialog: false,
     };
     this.onChange = this.onChange.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
-    this.onCheck = this.onCheck.bind(this);
-    this.onCheckFilter = this.onCheckFilter.bind(this);
-    this.setErrors = this.setErrors.bind(this);
-    this.onCheckSort = this.onCheckSort.bind(this);
+    //this.onSubmitHandler = this.onSubmitHandler.bind(this);
   }
 
-  onChange = (e) => {
+  onChange(e) {
     this.setState({ [e.target.name]: e.target.value });
-  };
+  }
 
   onChangeFile = (e) => {
-    var _validFileExtensions = ["txt"];
+    var _validFileExtensions = ["txt", "csv"];
     var fileName = e.target.files[0].name;
     if (fileName.length > 0) {
       var blnValid = false;
@@ -64,7 +58,7 @@ class AddInput extends Component {
               fileName.length - sCurExtension.length,
               sCurExtension.length
             )
-            .toLowerCase() == sCurExtension.toLowerCase()
+            .toLowerCase() === sCurExtension.toLowerCase()
         ) {
           blnValid = true;
           break;
@@ -84,7 +78,7 @@ class AddInput extends Component {
     this.setState({ selectedFile: e.target.files[0] });
   };
 
-  onSubmit = (e) => {
+  onSubmitHandler = (e) => {
     e.preventDefault();
     // var outputText = this.state.outputText;
     var a = 0;
@@ -102,7 +96,7 @@ class AddInput extends Component {
           .post("api/upload/", data, {})
           .then((res) => this.setState({ uploadLoading: false }))
           .catch((err) => console.log(err));
-        return true;
+        //return true;
       }
       var rawemail = this.state.inputText
         .toLowerCase()
@@ -234,21 +228,12 @@ class AddInput extends Component {
       showFilter,
       copied,
       selectedFile,
-      openDialog,
     } = this.state;
     return (
       <div className="row">
         <div className="col-12">
-          {openDialog ? (
-            <ProcessDialog
-              openDialog={openDialog}
-              handleDialog={this.handleDialog}
-            />
-          ) : (
-            ""
-          )}
           {copied ? <AlertsPop handleClipboard={this.handleClipboard} /> : ""}
-          <form onSubmit={this.onSubmit} noValidate>
+          <form onSubmit={this.onSubmitHandler} noValidate>
             <div className="row">
               <div className="col-6">
                 <TextAreaFieldGroup
@@ -387,7 +372,7 @@ class AddInput extends Component {
             <div className="mt-4">
               <Button
                 variant="contained"
-                type="Submit"
+                type="submit"
                 size="large"
                 color="primary"
               >
