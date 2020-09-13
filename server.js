@@ -54,9 +54,11 @@ app.route("/api/upload").post((req, res, next) => {
 
   req.busboy.on("file", (fieldname, file, filename) => {
     console.log(`Upload of '${filename}' started`);
-
+    console.log(`Upload Path: '${uploadPath}'`);
     // Create a write stream of the new file
-    const fstream = fs.createWriteStream(path.join(uploadPath, Date.now() + "-" + filename));
+    const fstream = fs.createWriteStream(
+      path.join(uploadPath, Date.now() + "-" + filename)
+    );
     // Pipe it trough
     file.pipe(fstream);
 
