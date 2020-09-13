@@ -72,10 +72,6 @@ app.route("/api/upload").post((req, res, next) => {
   });
 });
 
-app.get("/",function(req,res){
-  res.status(200).json("Henddfd");
-})
-
 const port = process.env.PORT || 7000;
 
 //Server Static assets if in a production
