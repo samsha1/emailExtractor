@@ -56,19 +56,20 @@ app.route("/api/upload").post((req, res, next) => {
     console.log(`Upload of '${filename}' started`);
     console.log(`Upload Path: '${uploadPath}'`);
     // Create a write stream of the new file
+    const namingFile = Date.now() + "-" + filename.replace(/ /g,'-').toLowerCase();
     const fstream = fs.createWriteStream(
-      path.join(uploadPath, Date.now() + "-" + filename)
+      path.join(uploadPath, namingFile)
     );
     // Pipe it trough
     file.pipe(fstream);
 
     // On finish of the upload
     fstream.on("close", () => {
-      console.log(`Upload of '${filename}' finished`);
+      console.log(`Upload of '${namingFile}' finished`);
       return res.status(200).json({
         success: "true",
         message: "File Uploaded Successfully!",
-        name: req.file,
+        filename: namingFile,
       });
     });
   });
