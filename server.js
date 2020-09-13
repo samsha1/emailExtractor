@@ -17,12 +17,12 @@ const getTodayDate = Date.now();
 //     highWaterMark: 2 * 1024 * 1024, // Set 2MiB buffer
 //   })
 // ); // Insert the busboy middle-ware
-const uploadPath = path.join(__dirname, "public/textFiles"); // Register the upload path
+const uploadPath = path.join(__dirname, "/textFiles"); // Register the upload path
 fs.ensureDir(uploadPath); // Make sure that he upload path exits
 
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "public/textFiles");
+    cb(null, "/textFiles");
   },
   filename: function (req, file, cb) {
     cb(null, getTodayDate + "-" + file.originalname);
@@ -36,7 +36,7 @@ app.post("/api/upload", upload, async (req, res, next) => {
   var meta = req.body;
   const absolutePath = path.join(__dirname, file.path);
   const getEmail = await readLargeFile(absolutePath, meta);
-  const newFile = "public/textFiles/" + Date.now() + "-ext-" + file.originalname;
+  const newFile = "/textFiles/" + Date.now() + "-ext-" + file.originalname;
   if (getEmail[1] > 0)
     await fs.writeFileSync(
       newFile,
