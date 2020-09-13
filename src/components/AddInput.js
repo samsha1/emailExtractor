@@ -6,12 +6,13 @@ import FilterOptions from "./FilterOptions";
 import FileCopyIcon from "@material-ui/icons/FileCopy";
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
+import { Link } from "react-router-dom";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import AlertsPop from "./common/AlertsPop";
 import Title from "../components/common/Title";
 import PublishIcon from "@material-ui/icons/Publish";
 import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
-import { Fab, Button } from "@material-ui/core";
+import { Fab, Button, CircularProgress } from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import axios from "axios";
 
@@ -36,6 +37,7 @@ class AddInput extends Component {
       copied: false,
       selectedFile: null,
       uploadLoading: false,
+      counter: 0,
     };
     this.onChange = this.onChange.bind(this);
     //this.onSubmitHandler = this.onSubmitHandler.bind(this);
@@ -86,15 +88,34 @@ class AddInput extends Component {
     var groupby = Math.round(this.state.group);
     let string = this.state.addrContainingString;
     let isError = this.validate();
+    let getOnly = this.state.getOnly;
+    let otherSeparator = this.state.otherSeparator;
     var separator = this.state.separator;
+    var doSort = this.state.sort;
     if (!isError) {
       if (this.state.selectedFile) {
         this.setState({ uploadLoading: true, openDialog: true });
         const data = new FormData();
         data.append("file", this.state.selectedFile);
-        axios
-          .post("api/upload/", data, {})
-          .then((res) => this.setState({ uploadLoading: false }))
+        data.append("groupby", groupby);
+        data.append("addrString", string);
+        data.append("separator", separator);
+        data.append("getOnly", getOnly);
+        data.append("sort", doSort);
+        data.append("otherSeparator", otherSeparator);
+        axios({
+          url: "/api/upload",
+          method: "POST",
+          data: data,
+          headers: { "Content-Type": "multipart/form-data" },
+        })
+          .then((res) =>
+            this.setState({
+              uploadLoading: false,
+              outputText: res.data.emails,
+              counter: res.data.totalemails,
+            })
+          )
           .catch((err) => console.log(err));
         //return true;
       }
@@ -109,6 +130,7 @@ class AddInput extends Component {
       if (rawemail) {
         if (string) {
           let x = 0;
+          console.log(rawemail.length);
           for (var y = 0; y < rawemail.length; y++) {
             if (this.state.getOnly === "only") {
               if (rawemail[y].search(string) >= 0) {
@@ -228,6 +250,8 @@ class AddInput extends Component {
       showFilter,
       copied,
       selectedFile,
+      uploadLoading,
+      counter,
     } = this.state;
     return (
       <div className="row">
@@ -279,17 +303,7 @@ class AddInput extends Component {
                   info="Copy Output"
                   rows="18"
                 />
-                <div style={{ float: "right" }} className="m-0">
-                  <Button
-                    variant="contained"
-                    size="medium"
-                    color="primary"
-                    startIcon={<CloudDownloadIcon />}
-                  >
-                    {" "}
-                    Download (10)
-                  </Button>
-                </div>
+                
               </div>
             </div>
             <div className="row">
@@ -375,8 +389,9 @@ class AddInput extends Component {
                 type="submit"
                 size="large"
                 color="primary"
+                disabled={uploadLoading}
               >
-                Extract
+                {uploadLoading ? <CircularProgress disableShrink /> : "Extract"}
               </Button>
               <Button
                 variant="contained"

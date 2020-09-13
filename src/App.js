@@ -8,6 +8,7 @@ import Typography from "@material-ui/core/Typography";
 import Container from "@material-ui/core/Container";
 import Paper from "@material-ui/core/Paper";
 import AddInput from "./components/AddInput";
+import { BrowserRouter as Router } from "react-router-dom";
 
 import {
   orange,
@@ -22,9 +23,9 @@ import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 const useStyles = makeStyles((theme) => ({
   root: {
     display: "flex",
-  },              
+  },
   toolbar: {
-    paddingRight: 24, 
+    paddingRight: 24,
   },
   toolbarIcon: {
     display: "flex",
@@ -83,31 +84,33 @@ export default function Dashboard() {
     setDarkState(!darkState);
   };
   return (
-    <ThemeProvider theme={darkTheme}>
-      <div className={classes.root}>
-        <CssBaseline />
-        <AppBar position="absolute" className={classes.appBar}>
-          <Toolbar className={classes.toolbar}>
-            <Typography
-              component="p"
-              variant="h6"
-              noWrap
-              className={classes.title}
-            >
-              Advanced Email Sorter V1
-            </Typography>
-            <Switch checked={darkState} onChange={handleThemeChange} />
-          </Toolbar>
-        </AppBar>
-        <main className={classes.content}>
-          <div className={classes.appBarSpacer} />
-          <Container maxWidth="lg" className={classes.container}>
-            <Paper elevation={3} style={{ padding: "30px" }}>
-              <AddInput />
-            </Paper>
-          </Container>
-        </main>
-      </div>
-    </ThemeProvider>
+    <Router>
+      <ThemeProvider theme={darkTheme}>
+        <div className={classes.root}>
+          <CssBaseline />
+          <AppBar position="absolute" className={classes.appBar}>
+            <Toolbar className={classes.toolbar}>
+              <Typography
+                component="p"
+                variant="h6"
+                noWrap
+                className={classes.title}
+              >
+                Advanced Email Sorter V1
+              </Typography>
+              <Switch checked={darkState} onChange={handleThemeChange} />
+            </Toolbar>
+          </AppBar>
+          <main className={classes.content}>
+            <div className={classes.appBarSpacer} />
+            <Container maxWidth="lg" className={classes.container}>
+              <Paper elevation={3} style={{ padding: "30px" }}>
+                <AddInput />
+              </Paper>
+            </Container>
+          </main>
+        </div>
+      </ThemeProvider>
+    </Router>
   );
 }
