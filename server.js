@@ -2,10 +2,14 @@ const express = require("express");
 var multer = require("multer");
 const path = require("path");
 const fs = require("fs-extra");
+const bodyParser = require("body-parser");
 ///const formidable = require('express-formidable');
 
 const app = express();
 const getTodayDate = Date.now();
+//Body Parser Middleware
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 //Body Parser Middleware
 //app.use(formidable());
@@ -17,12 +21,12 @@ const getTodayDate = Date.now();
 //     highWaterMark: 2 * 1024 * 1024, // Set 2MiB buffer
 //   })
 // ); // Insert the busboy middle-ware
-const uploadPath = path.join(__dirname, "/textFiles"); // Register the upload path
+const uploadPath = path.join(__dirname, "public/textFiles"); // Register the upload path
 fs.ensureDir(uploadPath); // Make sure that he upload path exits
 
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "/textFiles");
+    cb(null, "public/textFiles");
   },
   filename: function (req, file, cb) {
     cb(null, getTodayDate + "-" + file.originalname);
@@ -36,12 +40,9 @@ app.post("/api/upload", upload, async (req, res, next) => {
   var meta = req.body;
   const absolutePath = path.join(__dirname, file.path);
   const getEmail = await readLargeFile(absolutePath, meta);
-  const newFile = "/textFiles/" + Date.now() + "-ext-" + file.originalname;
-  if (getEmail[1] > 0)
-    await fs.writeFileSync(
-      newFile,
-      getEmail[0]
-    );
+  const newFile =
+    "public/textFiles/" + Date.now() + "-ext-" + file.originalname;
+  if (getEmail[1] > 0) await fs.writeFileSync(newFile, getEmail[0]);
 
   return res.status(200).json({
     success: "true",
@@ -123,6 +124,13 @@ function readLargeFile(absolutePath, meta) {
   var counter = norepeat.length;
   return [email, counter];
 }
+
+app.post("/api/download", (req, res) => {
+  console.log(req.body);
+  const file = `${__dirname}/${req.body.file}`;
+  console.log(file);
+  res.download(file);
+});
 
 // app.route("/api/upload").post((req, res, next) => {
 //   //console.log(req.fields);
