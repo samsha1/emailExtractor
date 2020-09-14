@@ -90,7 +90,7 @@ const FilterOptions = (props) => {
           helperText={props.data.errors.addrContainingString}
         />
       </div>
-      {/* <div className="ml-4">
+      <div className="ml-4">
         <TextField
           error={props.data.errors.limitEmail ? true : false}
           id="outlined-error-helper-text"
@@ -105,7 +105,7 @@ const FilterOptions = (props) => {
           variant="outlined"
           helperText={props.data.errors.limitEmail}
         />
-      </div> */}
+      </div>
     </div>
   );
 };
