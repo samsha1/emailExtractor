@@ -370,28 +370,28 @@ class AddInput extends Component {
               </div>
             </div>
             <div className="d-flex mt-4">
-              <Title>Have Large Text?</Title>
-              <span className="ml-3">
-                <label htmlFor="upload-File">
-                  <input
-                    style={{ display: "none" }}
-                    id="upload-File"
-                    name="upload-File"
-                    type="file"
-                    onChange={this.onChangeFile}
-                  />
+              {/* <Title>Have Large Text?</Title> */}
 
-                  <Fab
-                    color="primary"
-                    size="small"
-                    component="span"
-                    aria-label="add"
-                    variant="extended"
-                  >
-                    <PublishIcon /> Upload File
-                  </Fab>
-                </label>
-              </span>
+              <label htmlFor="upload-File">
+                <input
+                  style={{ display: "none" }}
+                  id="upload-File"
+                  name="upload-File"
+                  type="file"
+                  onChange={this.onChangeFile}
+                />
+
+                <Fab
+                  color="primary"
+                  size="small"
+                  component="span"
+                  aria-label="add"
+                  variant="extended"
+                >
+                  <PublishIcon /> Large Files
+                </Fab>
+              </label>
+
               <Typography
                 component="p"
                 variant="caption"
