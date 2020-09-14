@@ -256,6 +256,8 @@ class AddInput extends Component {
       uploadLoading,
       counter,
       filepath,
+      separator,
+      otherSeparator,
     } = this.state;
     return (
       <div className="row">
@@ -413,8 +415,10 @@ class AddInput extends Component {
                 {uploadLoading ? <CircularProgress disableShrink /> : "Extract"}
               </Button>
               <ValidateButton
-                filepath={filepath}
+                outputText={outputText}
                 onUpdateHandler={this.onUpdateHandler}
+                separator={otherSeparator ? otherSeparator : separator}
+                filepath={filepath}
               />
             </div>
           </form>

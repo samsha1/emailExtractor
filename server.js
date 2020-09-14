@@ -3,10 +3,12 @@ var multer = require("multer");
 const path = require("path");
 const fs = require("fs-extra");
 const bodyParser = require("body-parser");
+const EmailValidator = require("email-deep-validator");
 ///const formidable = require('express-formidable');
 
 const app = express();
 const getTodayDate = Date.now();
+const emailValidator = new EmailValidator();
 //Body Parser Middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -40,14 +42,14 @@ app.post("/api/upload", upload, async (req, res, next) => {
   var meta = req.body;
   const absolutePath = path.join(__dirname, file.path);
   const getEmail = await readLargeFile(absolutePath, meta);
-  const newFile =
-    "public/textFiles/" + Date.now() + "-ext-" + file.originalname;
-  if (getEmail[1] > 0) fs.writeFileSync(newFile, getEmail[0]);
+  // const newFile =
+  //   "public/textFiles/" + Date.now() + "-ext-" + file.originalname;
+  if (getEmail[1] > 0) fs.writeFileSync(absolutePath, getEmail[0]);
 
   return res.status(200).json({
     success: "true",
     message: "File Uploaded Successfully!",
-    filepath: newFile,
+    filepath: file.path,
     emails: getEmail[0],
     totalemails: getEmail[1],
   });
@@ -132,35 +134,38 @@ app.post("/api/download", (req, res) => {
   res.download(file);
 });
 
-// app.route("/api/upload").post((req, res, next) => {
-//   //console.log(req.fields);
-//   // files.map(file => {
-//   //   console.log(file)
-//   // })
-//   req.pipe(req.files.map().busboy); // Pipe it trough busboy
+app.post("/api/validate", async (req, res) => {
+  const separator = req.body.separator;
+  const emailToValidate = req.body.outputText.split(separator);
+  var validatedEmails = [];
+  await Promise.all([...emailToValidate.map(async (email) => {
+    const { wellFormed, validDomain, validMailbox } = await validateEachEmail(
+      email
+    );
 
-//   req.busboy.on("file", (fieldname, file, filename) => {
-//     console.log(`Upload of '${filename}' started`);
-//     console.log(`Upload Path: '${uploadPath}'`);
-//     // Create a write stream of the new file
-//     const namingFile = Date.now() + "-" + filename.replace(/ /g,'-').toLowerCase();
-//     const fstream = fs.createWriteStream(
-//       path.join(uploadPath, namingFile)
-//     );
-//     // Pipe it trough
-//     file.pipe(fstream);
+    if (wellFormed && validDomain) {
+      console.log("Email Verified: " + email);
+      validatedEmails.push(email);
+    }
+  })]);
+  var counter = validatedEmails.length;
+  var implodeValidateEmails = validatedEmails.join(separator);
+  const writeToFile = path.join(__dirname, req.body.filepath);
+  console.log(writeToFile);
+  if(counter > 0){
+    fs.writeFileSync(writeToFile, implodeValidateEmails);
+  }
+  return res.status(200).json({
+    'success':true,
+    'message':"Successfully Validated emails",
+    'totalEmails':counter,
+    'emails':implodeValidateEmails,
+  })
+});
 
-//     // On finish of the upload
-//     fstream.on("close", () => {
-//       console.log(`Upload of '${namingFile}' finished`);
-//       return res.status(200).json({
-//         success: "true",
-//         message: "File Uploaded Successfully!",
-//         filename: namingFile,
-//       });
-//     });
-//   });
-// });
+async function validateEachEmail(email) {
+  return await emailValidator.verify(email);
+}
 
 const port = process.env.PORT || 7000;
 

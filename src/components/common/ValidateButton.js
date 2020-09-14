@@ -7,26 +7,30 @@ export default function ValidateButton(props) {
   const [loader, setLoader] = React.useState(false);
   const [error, setError] = React.useState(false);
   const validateOutputHandler = () => {
-    console.log("Called Validare Output Handler");
-    const files = {
-      file: props.filepath,
-    };
-    if (!props.filepath) {
-      console.log("Set Error true");
+    if (!props.outputText) {
       setError(true);
       return false;
     }
 
     setLoader(true);
+    const text = {
+      outputText: props.outputText,
+      separator: props.separator,
+      filepath:props.filepath,
+    };
 
     axios({
       url: "/api/validate",
       method: "POST",
-      data: files,
+      data: text,
       headers: { "Content-Type": "application/json" },
     })
       .then((res) => {
-        console.log(res.data);
+        props.onUpdateHandler({
+          outputText: res.data.emails,
+          counter: res.data.totalEmails,
+        });
+        setLoader(false);
       })
       .catch((err) => console.log(err.response.data));
   };
@@ -49,7 +53,6 @@ export default function ValidateButton(props) {
       {error ? (
         <AlertsPop
           message="No Emails to Validate."
-          key={error}
           onHandleError={setErrorBack}
         />
       ) : (
