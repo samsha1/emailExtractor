@@ -42,7 +42,7 @@ app.post("/api/upload", upload, async (req, res, next) => {
   const getEmail = await readLargeFile(absolutePath, meta);
   const newFile =
     "public/textFiles/" + Date.now() + "-ext-" + file.originalname;
-  if (getEmail[1] > 0) await fs.writeFileSync(newFile, getEmail[0]);
+  if (getEmail[1] > 0) fs.writeFileSync(newFile, getEmail[0]);
 
   return res.status(200).json({
     success: "true",
@@ -53,7 +53,7 @@ app.post("/api/upload", upload, async (req, res, next) => {
   });
 });
 
-function readLargeFile(absolutePath, meta) {
+async function readLargeFile(absolutePath, meta) {
   var a = 0;
   var ingroup = 0;
   let { groupby, addrString, separator, getOnly, sort, otherSeparator } = meta;

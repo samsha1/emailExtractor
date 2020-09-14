@@ -12,15 +12,18 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const AlertsPop = (props) => {
-  console.log(props);
   const classes = useStyles();
   const [open, setOpen] = React.useState(true);
   const handleClose = (event, reason) => {
     if (reason === "clickaway") {
       return;
     }
+    if (props.handleClipboard) {
+      props.handleClipboard();
+    } else {
+      props.onHandleError();
+    }
 
-    props.handleClipboard();
     setOpen(false);
   };
 
@@ -30,10 +33,9 @@ const AlertsPop = (props) => {
         open={open}
         autoHideDuration={2000}
         onClose={handleClose}
-        message="Email addresses copied."
+        message={props.message}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-      </Snackbar>
+      ></Snackbar>
     </div>
   );
 };

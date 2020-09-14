@@ -10,6 +10,7 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 import AlertsPop from "./common/AlertsPop";
 import Title from "../components/common/Title";
 import DownloadButton from "../components/common/DownloadButton";
+import ValidateButton from "../components/common/ValidateButton";
 import PublishIcon from "@material-ui/icons/Publish";
 import { Fab, Button, CircularProgress } from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
@@ -37,7 +38,7 @@ class AddInput extends Component {
       selectedFile: null,
       uploadLoading: false,
       counter: 0,
-      filepath:"",
+      filepath: null,
     };
     this.onChange = this.onChange.bind(this);
     //this.onSubmitHandler = this.onSubmitHandler.bind(this);
@@ -114,11 +115,11 @@ class AddInput extends Component {
               uploadLoading: false,
               outputText: res.data.emails,
               counter: res.data.totalemails,
-              filepath:res.data.filepath,
+              filepath: res.data.filepath,
             })
           )
           .catch((err) => console.log(err));
-          return true;
+        return true;
       }
       var rawemail = this.state.inputText
         .toLowerCase()
@@ -181,7 +182,8 @@ class AddInput extends Component {
           }
         }
       }
-      this.setState({ outputText: email });
+      var counter = norepeat.length;
+      this.setState({ outputText: email, counter: counter });
     }
   };
 
@@ -215,7 +217,7 @@ class AddInput extends Component {
     });
   };
 
-  handleDialog = (value) => {
+  onUpdateHandler = (value) => {
     // const { key, val } = value;
     // console.log(value);
     this.setState(value);
@@ -253,12 +255,19 @@ class AddInput extends Component {
       selectedFile,
       uploadLoading,
       counter,
-      filepath
+      filepath,
     } = this.state;
     return (
       <div className="row">
         <div className="col-12">
-          {copied ? <AlertsPop handleClipboard={this.handleClipboard} /> : ""}
+          {copied ? (
+            <AlertsPop
+              handleClipboard={this.handleClipboard}
+              message="Emails copied to clipboard."
+            />
+          ) : (
+            ""
+          )}
           <form onSubmit={this.onSubmitHandler} noValidate>
             <div className="row">
               <div className="col-6">
@@ -305,7 +314,15 @@ class AddInput extends Component {
                   info="Copy Output"
                   rows="18"
                 />
-                {counter ? <DownloadButton counter={counter} filepath={filepath}/> : ""}
+                {counter ? (
+                  <DownloadButton
+                    counter={counter}
+                    filepath={filepath}
+                    outputText={outputText}
+                  />
+                ) : (
+                  ""
+                )}
               </div>
             </div>
             <div className="row">
@@ -385,25 +402,20 @@ class AddInput extends Component {
                 {selectedFile ? selectedFile.name : null}
               </Typography>
             </div>
-            <div className="mt-4">
+            <div className="d-flex mt-4">
               <Button
                 variant="contained"
                 type="submit"
-                size="large"
+                size="medium"
                 color="primary"
                 disabled={uploadLoading}
               >
                 {uploadLoading ? <CircularProgress disableShrink /> : "Extract"}
               </Button>
-              <Button
-                variant="contained"
-                type="button"
-                size="large"
-                color="primary"
-                className="ml-2"
-              >
-                Validate
-              </Button>
+              <ValidateButton
+                filepath={filepath}
+                onUpdateHandler={this.onUpdateHandler}
+              />
             </div>
           </form>
         </div>

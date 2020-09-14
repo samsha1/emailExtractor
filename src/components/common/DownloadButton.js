@@ -9,29 +9,39 @@ export default function DownloadButton(props) {
     const files = {
       file: props.filepath,
     };
-    let filename = props.filepath.match(/textFiles\/(.*)/i)[1];
-    if (!filename) {
-      filename = "yourfile.txt";
-    }
-
-    console.log(filename);
-    axios({
-      url: "/api/download",
-      method: "POST",
-      responseType: "blob",
-      data: files,
-      headers: { "Content-Type": "application/json" },
-    })
-      .then((res) => {
-        const url = window.URL.createObjectURL(new Blob([res.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", filename); //or any other extension
-        document.body.appendChild(link);
-        link.click();
-        console.log("File Downloaded");
+    if (props.filepath !== null) {
+      let filename = props.filepath.match(/textFiles\/(.*)/i)[1];
+      if (!filename) {
+        filename = "your-emails.txt";
+      }
+      axios({
+        url: "/api/download",
+        method: "POST",
+        responseType: "blob",
+        data: files,
+        headers: { "Content-Type": "application/json" },
       })
-      .catch((err) => console.log("Failed Downloading File"));
+        .then((res) => {
+          const url = window.URL.createObjectURL(new Blob([res.data]));
+          const link = document.createElement("a");
+          link.href = url;
+          link.setAttribute("download", filename); //or any other extension
+          document.body.appendChild(link);
+          link.click();
+          console.log("File Downloaded");
+        })
+        .catch((err) => console.log("Failed Downloading File"));
+    } else {
+      console.log("Empty File Name, Downloading from output text");
+      const staticUrl = window.URL.createObjectURL(
+        new Blob([props.outputText])
+      );
+      const staticLink = document.createElement("a");
+      staticLink.href = staticUrl;
+      staticLink.setAttribute("download", "your-emails.txt"); //or any other extension
+      document.body.appendChild(staticLink);
+      staticLink.click();
+    }
   };
   return (
     <div style={{ float: "right" }} className="m-0">
