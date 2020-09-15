@@ -16,6 +16,7 @@ import PublishIcon from "@material-ui/icons/Publish";
 import { Fab, Button, CircularProgress } from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import axios from "axios";
+import SortMxButton from "./common/SortMxButton";
 
 class AddInput extends Component {
   constructor() {
@@ -421,6 +422,12 @@ class AddInput extends Component {
                 {uploadLoading ? <CircularProgress disableShrink /> : "Extract"}
               </Button>
               <ValidateButton
+                outputText={outputText}
+                onUpdateHandler={this.onUpdateHandler}
+                separator={otherSeparator ? otherSeparator : separator}
+                filepath={filepath}
+              />
+              <SortMxButton
                 outputText={outputText}
                 onUpdateHandler={this.onUpdateHandler}
                 separator={otherSeparator ? otherSeparator : separator}
