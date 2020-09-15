@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import TextAreaFieldGroup from "./common/TextAreaFieldGroup";
 import Switch from "@material-ui/core/Switch";
 import SeparatorOptions from "./SeparatorOptions";
+import SortOptions from "./SortOptions";
 import FilterOptions from "./FilterOptions";
 import FileCopyIcon from "@material-ui/icons/FileCopy";
 import IconButton from "@material-ui/core/IconButton";
@@ -28,6 +29,7 @@ class AddInput extends Component {
       isLoading: "",
       showOutput: true,
       showFilter: true,
+      showSort: true,
       separator: ",",
       otherSeparator: "",
       getOnly: "",
@@ -39,6 +41,7 @@ class AddInput extends Component {
       uploadLoading: false,
       counter: 0,
       filepath: null,
+      tld: "",
     };
     this.onChange = this.onChange.bind(this);
     //this.onSubmitHandler = this.onSubmitHandler.bind(this);
@@ -93,6 +96,7 @@ class AddInput extends Component {
     let otherSeparator = this.state.otherSeparator;
     var separator = this.state.separator;
     var doSort = this.state.sort;
+    var tld = this.state.tld;
     if (!isError) {
       if (this.state.selectedFile) {
         this.setState({ uploadLoading: true, openDialog: true });
@@ -103,6 +107,7 @@ class AddInput extends Component {
         data.append("separator", separator);
         data.append("getOnly", getOnly);
         data.append("sort", doSort);
+        data.append("tld", tld);
         data.append("otherSeparator", otherSeparator);
         axios({
           url: "/api/upload",
@@ -132,7 +137,6 @@ class AddInput extends Component {
       if (rawemail) {
         if (string) {
           let x = 0;
-          console.log(rawemail.length);
           for (var y = 0; y < rawemail.length; y++) {
             if (this.state.getOnly === "only") {
               if (rawemail[y].search(string) >= 0) {
@@ -169,6 +173,11 @@ class AddInput extends Component {
         var email = "";
         // Join emails together with separator
         for (var k = 0; k < norepeat.length; k++) {
+          if (tld) {
+            var toplevel = norepeat[k].split(".").pop();
+            if (toplevel !== tld) continue;
+          }
+          console.log("skippin");
           if (ingroup !== 0) email += separator;
           email += norepeat[k];
           ingroup++;
@@ -182,21 +191,9 @@ class AddInput extends Component {
           }
         }
       }
-      var counter = norepeat.length;
+      var counter = email.split(separator).length;
       this.setState({ outputText: email, counter: counter });
     }
-  };
-
-  onCheck = (e) => {
-    this.setState({
-      showOutput: !this.state.showOutput,
-    });
-  };
-
-  onCheckFilter = (e) => {
-    this.setState({
-      showFilter: !this.state.showFilter,
-    });
   };
 
   handleClipboard = () => {
@@ -333,7 +330,9 @@ class AddInput extends Component {
                   <Title>Output Options:</Title>
                   <Switch
                     checked={showOutput}
-                    onChange={this.onCheck}
+                    onChange={() =>
+                      this.onUpdateHandler({ showOutput: !showOutput })
+                    }
                     color="primary"
                     name="showOutput"
                     inputProps={{ "aria-label": "primary checkbox" }}
@@ -354,7 +353,9 @@ class AddInput extends Component {
                   <Title>Filter Options:</Title>
                   <Switch
                     checked={showFilter}
-                    onChange={this.onCheckFilter}
+                    onChange={() =>
+                      this.onUpdateHandler({ showFilter: !showFilter })
+                    }
                     color="primary"
                     name="showFilter"
                     inputProps={{ "aria-label": "primary checkbox" }}
@@ -369,6 +370,11 @@ class AddInput extends Component {
                 ) : null}
               </div>
             </div>
+            <SortOptions
+              onUpdateHandler={this.onUpdateHandler}
+              handleChange={this.onChange}
+              data={this.state}
+            />
             <div className="d-flex mt-4">
               {/* <Title>Have Large Text?</Title> */}
 

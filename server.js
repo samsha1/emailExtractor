@@ -58,7 +58,15 @@ app.post("/api/upload", upload, async (req, res, next) => {
 async function readLargeFile(absolutePath, meta) {
   var a = 0;
   var ingroup = 0;
-  let { groupby, addrString, separator, getOnly, sort, otherSeparator } = meta;
+  let {
+    groupby,
+    addrString,
+    separator,
+    getOnly,
+    sort,
+    otherSeparator,
+    tld,
+  } = meta;
   var rawemail = fs
     .readFileSync(absolutePath, "utf-8")
     .toLowerCase()
@@ -108,6 +116,10 @@ async function readLargeFile(absolutePath, meta) {
     var email = "";
     // Join emails together with separator
     for (var k = 0; k < norepeat.length; k++) {
+      if (tld) {
+        var toplevel = norepeat[k].split(".").pop();
+        if (toplevel !== tld) continue;
+      }
       if (ingroup !== 0) email += separator;
       email += norepeat[k];
       ingroup++;
@@ -123,14 +135,14 @@ async function readLargeFile(absolutePath, meta) {
     }
   }
   //console.log(email);
-  var counter = norepeat.length;
+  var counter = email.split(separator).length;
   return [email, counter];
 }
 
 app.post("/api/download", (req, res) => {
-  console.log(req.body);
+  //console.log(req.body);
   const file = `${__dirname}/${req.body.file}`;
-  console.log(file);
+  //console.log(file);
   res.download(file);
 });
 
@@ -138,29 +150,35 @@ app.post("/api/validate", async (req, res) => {
   const separator = req.body.separator;
   const emailToValidate = req.body.outputText.split(separator);
   var validatedEmails = [];
-  await Promise.all([...emailToValidate.map(async (email) => {
-    const { wellFormed, validDomain, validMailbox } = await validateEachEmail(
-      email
-    );
+  await Promise.all([
+    ...emailToValidate.map(async (email) => {
+      const { wellFormed, validDomain, validMailbox } = await validateEachEmail(
+        email
+      );
 
-    if (wellFormed && validDomain) {
-      console.log("Email Verified: " + email);
-      validatedEmails.push(email);
-    }
-  })]);
+      if (wellFormed && validDomain) {
+        console.log("Email Verified: " + email);
+        validatedEmails.push(email);
+      }
+    }),
+  ]);
   var counter = validatedEmails.length;
   var implodeValidateEmails = validatedEmails.join(separator);
-  const writeToFile = path.join(__dirname, req.body.filepath);
-  console.log(writeToFile);
-  if(counter > 0){
-    fs.writeFileSync(writeToFile, implodeValidateEmails);
+
+  if (req.body.filepath !== null) {
+    const writeToFile = path.join(__dirname, req.body.filepath);
+    console.log(writeToFile);
+    if (counter > 0) {
+      fs.writeFileSync(writeToFile, implodeValidateEmails);
+    }
   }
+
   return res.status(200).json({
-    'success':true,
-    'message':"Successfully Validated emails",
-    'totalEmails':counter,
-    'emails':implodeValidateEmails,
-  })
+    success: true,
+    message: "Successfully Validated emails",
+    totalEmails: counter,
+    emails: implodeValidateEmails,
+  });
 });
 
 async function validateEachEmail(email) {
