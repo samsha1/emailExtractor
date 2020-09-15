@@ -28,10 +28,10 @@ const SortOptions = (props) => {
         {props.data.showSort ? (
           <FormControl
             variant="outlined"
-            style={{ minWidth: 130 }}
+            style={{ minWidth: 110 }}
             margin="dense"
           >
-            <InputLabel id="demo-simple-select-outlined-label">
+            <InputLabel id="demo-simple-select-outlined-label" style={{fontSize:12}}>
               Sort By TLD
             </InputLabel>
             <Select
