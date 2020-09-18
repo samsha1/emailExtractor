@@ -42,6 +42,8 @@ class AddInput extends Component {
       uploadLoading: false,
       counter: 0,
       filepath: null,
+      fileLoading: false,
+      loader: false,
       tld: "",
     };
     this.onChange = this.onChange.bind(this);
@@ -53,36 +55,63 @@ class AddInput extends Component {
   }
 
   onChangeFile = (e) => {
-    var _validFileExtensions = ["txt", "csv"];
-    var fileName = e.target.files[0].name;
-    if (fileName.length > 0) {
-      var blnValid = false;
-      for (var j = 0; j < _validFileExtensions.length; j++) {
-        var sCurExtension = _validFileExtensions[j];
-        if (
-          fileName
-            .substr(
-              fileName.length - sCurExtension.length,
-              sCurExtension.length
-            )
-            .toLowerCase() === sCurExtension.toLowerCase()
-        ) {
-          blnValid = true;
-          break;
+    this.setState({ loader: true, fileLoading: true });
+    var _validFileExtensions = ["txt", "csv", "mkv"];
+    if (e.target.files[0]) {
+      var fileName = e.target.files[0].name;
+      if (fileName.length > 0) {
+        var blnValid = false;
+        for (var j = 0; j < _validFileExtensions.length; j++) {
+          var sCurExtension = _validFileExtensions[j];
+          if (
+            fileName
+              .substr(
+                fileName.length - sCurExtension.length,
+                sCurExtension.length
+              )
+              .toLowerCase() === sCurExtension.toLowerCase()
+          ) {
+            blnValid = true;
+            break;
+          }
+        }
+        if (!blnValid) {
+          alert(
+            "Sorry, " +
+              fileName +
+              " is invalid, allowed extensions are: " +
+              _validFileExtensions.join(", ")
+          );
+          this.setState({ loader: false, fileLoading: false });
+          return false;
         }
       }
-      if (!blnValid) {
-        alert(
-          "Sorry, " +
-            fileName +
-            " is invalid, allowed extensions are: " +
-            _validFileExtensions.join(", ")
-        );
-        return false;
-      }
-    }
 
-    this.setState({ selectedFile: e.target.files[0] });
+      const data = new FormData();
+      data.append("file", e.target.files[0]);
+      axios({
+        url: "/api/upload",
+        method: "POST",
+        data: data,
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+        .then((res) =>
+          this.setState({
+            loader: false,
+            fileLoading: false,
+            selectedFile: res.data.path,
+            filename: res.data.filename,
+          })
+        )
+        .catch((err) =>
+          this.setState({
+            loader: false,
+            fileLoading: false,
+          })
+        );
+      //this.setState({ loader: false });
+      return true;
+    }
   };
 
   onSubmitHandler = (e) => {
@@ -111,7 +140,7 @@ class AddInput extends Component {
         data.append("tld", tld);
         data.append("otherSeparator", otherSeparator);
         axios({
-          url: "/api/upload",
+          url: "/api/extract",
           method: "POST",
           data: data,
           headers: { "Content-Type": "multipart/form-data" },
@@ -256,6 +285,9 @@ class AddInput extends Component {
       filepath,
       separator,
       otherSeparator,
+      fileLoading,
+      loader,
+      filename,
     } = this.state;
     return (
       <div className="row">
@@ -387,15 +419,20 @@ class AddInput extends Component {
                   type="file"
                   onChange={this.onChangeFile}
                 />
-
                 <Fab
                   color="primary"
                   size="small"
                   component="span"
                   aria-label="add"
                   variant="extended"
+                  disabled={loader}
                 >
-                  <PublishIcon /> Large Files
+                  {fileLoading ? (
+                    <CircularProgress size={25} />
+                  ) : (
+                    <PublishIcon />
+                  )}{" "}
+                  Large Files
                 </Fab>
               </label>
 
@@ -408,7 +445,7 @@ class AddInput extends Component {
                   textIndent: "10px",
                 }}
               >
-                {selectedFile ? selectedFile.name : null}
+                {filename ? filename : null}
               </Typography>
             </div>
             <div className="d-flex mt-4">
@@ -417,7 +454,7 @@ class AddInput extends Component {
                 type="submit"
                 size="medium"
                 color="primary"
-                disabled={uploadLoading}
+                disabled={loader}
               >
                 {uploadLoading ? <CircularProgress disableShrink /> : "Extract"}
               </Button>
@@ -425,12 +462,14 @@ class AddInput extends Component {
                 outputText={outputText}
                 onUpdateHandler={this.onUpdateHandler}
                 separator={otherSeparator ? otherSeparator : separator}
+                loader={loader}
                 filepath={filepath}
               />
               <SortMxButton
                 outputText={outputText}
                 onUpdateHandler={this.onUpdateHandler}
                 separator={otherSeparator ? otherSeparator : separator}
+                loader
                 filepath={filepath}
               />
             </div>

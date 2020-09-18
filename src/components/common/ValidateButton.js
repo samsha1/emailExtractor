@@ -4,7 +4,7 @@ import axios from "axios";
 import AlertsPop from "./AlertsPop";
 
 export default function ValidateButton(props) {
-  const [loader, setLoader] = React.useState(false);
+  const [validating, setValidating] = React.useState(false);
   const [error, setError] = React.useState(false);
   const validateOutputHandler = () => {
     if (!props.outputText) {
@@ -12,11 +12,12 @@ export default function ValidateButton(props) {
       return false;
     }
 
-    setLoader(true);
+    props.onUpdateHandler({ loader: !props.loader });
+    setValidating(true);
     const text = {
       outputText: props.outputText,
       separator: props.separator,
-      filepath:props.filepath,
+      filepath: props.filepath,
     };
 
     axios({
@@ -30,7 +31,8 @@ export default function ValidateButton(props) {
           outputText: res.data.emails,
           counter: res.data.totalEmails,
         });
-        setLoader(false);
+        props.onUpdateHandler({ loader: !props.loader });
+        setValidating(false);
       })
       .catch((err) => console.log(err.response.data));
   };
@@ -45,10 +47,10 @@ export default function ValidateButton(props) {
         size="medium"
         color="primary"
         onClick={validateOutputHandler}
-        disabled={loader}
+        disabled={props.loader}
       >
         {" "}
-        {loader ? <CircularProgress disableShrink /> : "Validate"}
+        {validating ? <CircularProgress disableShrink /> : "Validate"}
       </Button>
       {error ? (
         <AlertsPop

@@ -23,12 +23,12 @@ app.use(bodyParser.json());
 //     highWaterMark: 2 * 1024 * 1024, // Set 2MiB buffer
 //   })
 // ); // Insert the busboy middle-ware
-const uploadPath = path.join(__dirname, "public/textFiles"); // Register the upload path
+const uploadPath = path.join(__dirname, "src/textFiles"); // Register the upload path
 fs.ensureDir(uploadPath); // Make sure that he upload path exits
 
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "public/textFiles");
+    cb(null, "src/textFiles");
   },
   filename: function (req, file, cb) {
     cb(null, getTodayDate + "-" + file.originalname);
@@ -37,14 +37,26 @@ var storage = multer.diskStorage({
 
 var upload = multer({ storage }).single("file");
 
-app.post("/api/upload", upload, async (req, res, next) => {
+app.post("/api/upload", upload, async (req, res) => {
   const file = req.file;
-  var meta = req.body;
   const absolutePath = path.join(__dirname, file.path);
-  const getEmail = await readLargeFile(absolutePath, meta);
+  if (absolutePath) {
+    return res.status(200).json({
+      success: "true",
+      message: "file uploaded successfully",
+      path: file.path,
+      filename: file.originalname,
+    });
+  }
+});
+
+app.post("/api/extract", async (req, res, next) => {
+  var meta = req.body;
+  const filePath = "src/textFiles/" + meta.filePath;
+  const getEmail = await readLargeFile(filePath, meta);
   // const newFile =
-  //   "public/textFiles/" + Date.now() + "-ext-" + file.originalname;
-  if (getEmail[1] > 0) fs.writeFileSync(absolutePath, getEmail[0]);
+  //   "src/textFiles/" + Date.now() + "-ext-" + file.originalname;
+  if (getEmail[1] > 0) fs.writeFileSync(filePath, getEmail[0]);
 
   return res.status(200).json({
     success: "true",
