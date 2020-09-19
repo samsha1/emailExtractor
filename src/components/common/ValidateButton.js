@@ -15,7 +15,6 @@ export default function ValidateButton(props) {
     props.onUpdateHandler({ loader: !props.loader });
     setValidating(true);
     const text = {
-      outputText: props.outputText,
       separator: props.separator,
       filepath: props.filepath,
     };

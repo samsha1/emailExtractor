@@ -2,6 +2,7 @@ const express = require("express");
 var multer = require("multer");
 const path = require("path");
 const fs = require("fs-extra");
+const legit = require("legit");
 const bodyParser = require("body-parser");
 const EmailValidator = require("email-deep-validator");
 ///const formidable = require('express-formidable');
@@ -193,14 +194,17 @@ async function readLargeFile(meta) {
 
 app.post("/api/download", (req, res) => {
   //console.log(req.body);
-  const file = `${__dirname}/${req.body.file}`;
+  const file = `${__dirname}${absPath}/${req.body.file}`;
   //console.log(file);
   res.download(file);
 });
 
 app.post("/api/validate", async (req, res) => {
   const separator = req.body.separator;
-  const emailToValidate = req.body.outputText.split(separator);
+  const rootLocation = path.join(__dirname, absPath + "/" + req.body.filepath);
+  const emailToValidate = fs
+    .readFileSync(rootLocation, "utf-8")
+    .split(separator);
   var validatedEmails = [];
   await Promise.all([
     ...emailToValidate.map(async (email) => {
@@ -218,10 +222,8 @@ app.post("/api/validate", async (req, res) => {
   var implodeValidateEmails = validatedEmails.join(separator);
 
   if (req.body.filepath !== null) {
-    const writeToFile = path.join(__dirname, req.body.filepath);
-    console.log(writeToFile);
     if (counter > 0) {
-      fs.writeFileSync(writeToFile, implodeValidateEmails);
+      fs.writeFileSync(rootLocation, implodeValidateEmails, "utf-8");
     }
   }
 
@@ -233,8 +235,47 @@ app.post("/api/validate", async (req, res) => {
   });
 });
 
+app.post("/api/sortemails", async (req, res) => {
+  const separator = req.body.separator;
+  const sortFileLocation = path.join(
+    __dirname,
+    absPath + "/" + req.body.filepath
+  );
+
+  const emailForSorter = fs
+    .readFileSync(sortFileLocation, "utf-8")
+    .split(separator);
+  var validatedEmails = [];
+  await Promise.all([
+    ...emailForSorter.map(async (email) => {
+      const { isValid, mxArray } = await legit(email);
+
+      if (isValid) {
+        let smtp = mxArray[0]["exchange"];
+        await checkForServiceProvider(smtp, email);
+      }
+    }),
+  ]);
+  var counter = validatedEmails.length;
+  var implodeValidateEmails = validatedEmails.join(separator);
+});
+
 async function validateEachEmail(email) {
   return await emailValidator.verify(email);
+}
+
+async function checkForServiceProvider(smtp, email) {
+  const allProviders = "gmail,office365,zimbra,aol,yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,23-reg,strato,postoffice,mimecast,coremail,others".split(
+    ","
+  );
+  var providersEmail = [];
+  await Promise.all([
+    ...allProviders.map(async (provider) => {
+      if (smtp.indexOf(provider) > 0) {
+        providersEmail[provider].push(email);
+      }
+    }),
+  ]);
 }
 
 const port = process.env.PORT || 7000;

@@ -15,13 +15,9 @@ export default function SortMxButton(props) {
     props.onUpdateHandler({ loader: !props.loader });
     setSorter(true);
     const text = {
-      outputText: props.outputText,
       separator: props.separator,
       filepath: props.filepath,
     };
-    console.log(text);
-    return;
-
     axios({
       url: "/api/sortemails",
       method: "POST",
@@ -29,10 +25,6 @@ export default function SortMxButton(props) {
       headers: { "Content-Type": "application/json" },
     })
       .then((res) => {
-        props.onUpdateHandler({
-          outputText: res.data.emails,
-          counter: res.data.totalEmails,
-        });
         props.onUpdateHandler({ loader: false });
         setSorter(false);
       })
