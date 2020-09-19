@@ -17,8 +17,10 @@ export default function SortMxButton(props) {
     const text = {
       outputText: props.outputText,
       separator: props.separator,
-      filepath:props.filepath,
+      filepath: props.filepath,
     };
+    console.log(text);
+    return;
 
     axios({
       url: "/api/sortemails",
@@ -53,10 +55,7 @@ export default function SortMxButton(props) {
         {sorter ? <CircularProgress size={25} /> : "Sort"}
       </Button>
       {error ? (
-        <AlertsPop
-          message="No Emails to sort."
-          onHandleError={setErrorBack}
-        />
+        <AlertsPop message="No Emails to sort." onHandleError={setErrorBack} />
       ) : (
         ""
       )}

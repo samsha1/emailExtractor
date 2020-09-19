@@ -117,8 +117,8 @@ class AddInput extends Component {
   onSubmitHandler = (e) => {
     e.preventDefault();
     // var outputText = this.state.outputText;
-    var a = 0;
-    var ingroup = 0;
+    // var a = 0;
+    // var ingroup = 0;
     this.setState({ extractLoading: true, loader: true });
     var groupby = Math.round(this.state.group);
     let string = this.state.addrContainingString;
@@ -130,104 +130,30 @@ class AddInput extends Component {
     var tld = this.state.tld;
     var inputText = this.state.inputText;
     if (!isError) {
-      if (this.state.selectedFile) {
-        const exData = {
-          file:this.state.selectedFile,
-          groupby,
-          addrString:string,
-          separator,
-          inputText,
-          getOnly,
-          sort:doSort,
-          tld,
-          otherSeparator,
-        };
-        axios
-          .post("/api/extract", exData)
-          .then((res) =>
-            this.setState({
-              extractLoading: false,
-              loader: false,
-              outputText: res.data.emails,
-              counter: res.data.totalemails,
-              filepath: res.data.filepath,
-            })
-          )
-          .catch((err) => console.log(err));
-        return true;
-      }
-      var rawemail = inputText
-        .toLowerCase()
-        .match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi);
-      //this.setState({ outputText: rawemail === null ? "" : rawemail });
-      if (separator === "newline") separator = "\n";
-      if (separator === "other") separator = this.state.otherSeparator;
-      var norepeat = [];
-      var filtermail = [];
-      if (rawemail) {
-        if (string) {
-          let x = 0;
-          for (var y = 0; y < rawemail.length; y++) {
-            if (this.state.getOnly === "only") {
-              if (rawemail[y].search(string) >= 0) {
-                filtermail[x] = rawemail[y];
-                x++;
-              }
-            } else {
-              if (rawemail[y].search(string) < 0) {
-                filtermail[x] = rawemail[y];
-                x++;
-              }
-            }
-          }
-          rawemail = filtermail;
-        }
-        for (var i = 0; i < rawemail.length; i++) {
-          var repeat = 0;
-
-          // Check for repeated emails routine
-          for (var j = i + 1; j < rawemail.length; j++) {
-            if (rawemail[i] === rawemail[j]) {
-              repeat++;
-            }
-          }
-
-          // Create new array for non-repeated emails
-          if (repeat === 0) {
-            norepeat[a] = rawemail[i];
-            a++;
-          }
-        }
-
-        if (this.state.sort) norepeat = norepeat.sort();
-        var email = "";
-        // Join emails together with separator
-        for (var k = 0; k < norepeat.length; k++) {
-          if (tld) {
-            var toplevel = norepeat[k].split(".").pop();
-            if (toplevel !== tld) continue;
-          }
-          console.log("skippin");
-          if (ingroup !== 0) email += separator;
-          email += norepeat[k];
-          ingroup++;
-
-          // Group emails if a number is specified in form. Each group will be separate by new line.
-          if (groupby) {
-            if (ingroup === groupby) {
-              email += "\n\n";
-              ingroup = 0;
-            }
-          }
-        }
-      }
-      var counter = email.split(separator).length;
-      this.setState({
-        outputText: email,
-        counter: counter,
-        loader: false,
-        extractLoading: false,
-      });
+      const exData = {
+        selectedFile: this.state.selectedFile,
+        groupby,
+        addrString: string,
+        separator,
+        inputText,
+        getOnly,
+        sort: doSort,
+        tld,
+        otherSeparator,
+      };
+      axios
+        .post("/api/extract", exData)
+        .then((res) =>
+          this.setState({
+            extractLoading: false,
+            loader: false,
+            outputText: res.data.emails,
+            counter: res.data.totalemails,
+            filepath: res.data.filepath,
+          })
+        )
+        .catch((err) => console.log(err));
+      return true;
     }
   };
 

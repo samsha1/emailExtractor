@@ -9,10 +9,10 @@ const EmailValidator = require("email-deep-validator");
 const app = express();
 const getTodayDate = Date.now();
 const emailValidator = new EmailValidator();
-var absolutePath;
 //Body Parser Middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+const absPath = "src/textFiles";
 
 //Body Parser Middleware
 //app.use(formidable());
@@ -24,12 +24,12 @@ app.use(bodyParser.json());
 //     highWaterMark: 2 * 1024 * 1024, // Set 2MiB buffer
 //   })
 // ); // Insert the busboy middle-ware
-const uploadPath = path.join(__dirname, "public/textFiles"); // Register the upload path
+const uploadPath = path.join(__dirname, absPath); // Register the upload path
 fs.ensureDir(uploadPath); // Make sure that he upload path exits
 
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "public/textFiles");
+    cb(null, absPath);
   },
   filename: function (req, file, cb) {
     cb(null, getTodayDate + "-" + file.originalname);
@@ -45,7 +45,7 @@ app.post("/api/upload", upload, async (req, res) => {
     return res.status(200).json({
       success: "true",
       message: "file uploaded successfully",
-      path: file.path,
+      path: path.basename(file.path),
       filename: file.originalname,
     });
   }
@@ -53,22 +53,27 @@ app.post("/api/upload", upload, async (req, res) => {
 
 app.post("/api/extract", async (req, res, next) => {
   var meta = req.body;
-  // const filePath = "public/textFiles/" + meta.filePath;
+  // const filePath = "src/textFiles/" + meta.filePath;
   // const absolutePath = path.join(__dirname, meta.filePath);
   //console.log(absolutePath);
   const getEmail = await readLargeFile(meta);
-  console.log(getEmail);
-
+  // const toFile = path.join(__dirname, absolutePath);
+  //console.log(toFile);
   // const newFile =
-  //   "public/textFiles/" + Date.now() + "-ext-" + file.originalname;
-  if (getEmail[1] > 0) fs.writeFileSync(absolutePath, getEmail[0]);
-
+  //   "src/textFiles/" + Date.now() + "-ext-" + file.originalname;
+  // const finalSync = path.join(__dirname, getEmail.filepath);
+  // console.log(`After Read Sync:${finalSync}`);
+  // console.log(meta.selectedFile);
+  const emailFileName =
+    path.basename(getEmail.filepath, ".txt") + "-emails.txt";
+  const pathEmailFile = path.join(__dirname, absPath + "/" + emailFileName);
+  if (getEmail.counter > 0) fs.writeFileSync(pathEmailFile, getEmail.email);
   return res.status(200).json({
     success: "true",
     message: "Successfully Extracted Emails.",
-    filepath: meta.file,
-    emails: getEmail[0],
-    totalemails: getEmail[1],
+    emails: getEmail.email,
+    filepath: path.basename(pathEmailFile),
+    totalemails: getEmail.counter,
   });
 });
 
@@ -83,13 +88,27 @@ async function readLargeFile(meta) {
     sort,
     otherSeparator,
     tld,
+    selectedFile,
     inputText,
   } = meta;
-  if (inputText !== "") {
-    fs.appendFileSync(absolutePath, inputText, "utf8");
+
+  console.log(selectedFile);
+  if (inputText !== "" && selectedFile === null) {
+    var location = path.join(
+      __dirname,
+      absPath + "/" + Date.now() + "-temp-text.txt"
+    );
+    fs.writeFileSync(location, inputText);
+  } else {
+    var location = path.join(__dirname, absPath + "/" + selectedFile);
+    var readInitialFile = fs.readFileSync(location, "utf-8");
+    fs.appendFileSync(location, inputText, "utf8");
   }
+
+  console.log(`From Read Sync First: ${location}`);
+
   var rawemail = fs
-    .readFileSync(absolutePath, "utf-8")
+    .readFileSync(location, "utf-8")
     .toLowerCase()
     .match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi);
   if (separator === "newline") separator = "\n";
@@ -156,8 +175,20 @@ async function readLargeFile(meta) {
     }
   }
   //console.log(email);
-  var counter = email.split(separator).length;
-  return [email, counter];
+  if (email !== undefined) {
+    var counter = email.split(separator).length;
+  }
+
+  if (inputText !== "" && selectedFile) {
+    fs.writeFileSync(location, readInitialFile);
+  }
+
+  const response = {
+    email: email,
+    counter: counter,
+    filepath: location,
+  };
+  return response;
 }
 
 app.post("/api/download", (req, res) => {
