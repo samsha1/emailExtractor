@@ -39,7 +39,7 @@ class AddInput extends Component {
       sort: false,
       copied: false,
       selectedFile: null,
-      uploadLoading: false,
+      extractLoading: false,
       counter: 0,
       filepath: null,
       fileLoading: false,
@@ -119,6 +119,7 @@ class AddInput extends Component {
     // var outputText = this.state.outputText;
     var a = 0;
     var ingroup = 0;
+    this.setState({ extractLoading: true, loader: true });
     var groupby = Math.round(this.state.group);
     let string = this.state.addrContainingString;
     let isError = this.validate();
@@ -127,27 +128,26 @@ class AddInput extends Component {
     var separator = this.state.separator;
     var doSort = this.state.sort;
     var tld = this.state.tld;
+    var inputText = this.state.inputText;
     if (!isError) {
       if (this.state.selectedFile) {
-        this.setState({ uploadLoading: true, openDialog: true });
-        const data = new FormData();
-        data.append("file", this.state.selectedFile);
-        data.append("groupby", groupby);
-        data.append("addrString", string);
-        data.append("separator", separator);
-        data.append("getOnly", getOnly);
-        data.append("sort", doSort);
-        data.append("tld", tld);
-        data.append("otherSeparator", otherSeparator);
-        axios({
-          url: "/api/extract",
-          method: "POST",
-          data: data,
-          headers: { "Content-Type": "multipart/form-data" },
-        })
+        const exData = {
+          file:this.state.selectedFile,
+          groupby,
+          addrString:string,
+          separator,
+          inputText,
+          getOnly,
+          sort:doSort,
+          tld,
+          otherSeparator,
+        };
+        axios
+          .post("/api/extract", exData)
           .then((res) =>
             this.setState({
-              uploadLoading: false,
+              extractLoading: false,
+              loader: false,
               outputText: res.data.emails,
               counter: res.data.totalemails,
               filepath: res.data.filepath,
@@ -156,7 +156,7 @@ class AddInput extends Component {
           .catch((err) => console.log(err));
         return true;
       }
-      var rawemail = this.state.inputText
+      var rawemail = inputText
         .toLowerCase()
         .match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi);
       //this.setState({ outputText: rawemail === null ? "" : rawemail });
@@ -222,7 +222,12 @@ class AddInput extends Component {
         }
       }
       var counter = email.split(separator).length;
-      this.setState({ outputText: email, counter: counter });
+      this.setState({
+        outputText: email,
+        counter: counter,
+        loader: false,
+        extractLoading: false,
+      });
     }
   };
 
@@ -261,10 +266,10 @@ class AddInput extends Component {
       formErr.inputText = true;
     }
 
-    if (this.state.inputText.length > 0 && this.state.selectedFile) {
-      isError = true;
-      formErr.inputText = "Please select one way of input text/file";
-    }
+    // if (this.state.inputText.length > 0 && this.state.selectedFile) {
+    //   isError = true;
+    //   formErr.inputText = "Please select one way of input text/file";
+    // }
     this.setState({ errors: formErr });
 
     return isError;
@@ -280,7 +285,7 @@ class AddInput extends Component {
       showFilter,
       copied,
       selectedFile,
-      uploadLoading,
+      extractLoading,
       counter,
       filepath,
       separator,
@@ -456,7 +461,7 @@ class AddInput extends Component {
                 color="primary"
                 disabled={loader}
               >
-                {uploadLoading ? <CircularProgress disableShrink /> : "Extract"}
+                {extractLoading ? <CircularProgress size={25} /> : "Extract"}
               </Button>
               <ValidateButton
                 outputText={outputText}
@@ -469,7 +474,7 @@ class AddInput extends Component {
                 outputText={outputText}
                 onUpdateHandler={this.onUpdateHandler}
                 separator={otherSeparator ? otherSeparator : separator}
-                loader
+                loader={loader}
                 filepath={filepath}
               />
             </div>

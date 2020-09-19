@@ -31,7 +31,7 @@ export default function ValidateButton(props) {
           outputText: res.data.emails,
           counter: res.data.totalEmails,
         });
-        props.onUpdateHandler({ loader: !props.loader });
+        props.onUpdateHandler({ loader: false });
         setValidating(false);
       })
       .catch((err) => console.log(err.response.data));
@@ -50,7 +50,7 @@ export default function ValidateButton(props) {
         disabled={props.loader}
       >
         {" "}
-        {validating ? <CircularProgress disableShrink /> : "Validate"}
+        {validating ? <CircularProgress size={25} /> : "Validate"}
       </Button>
       {error ? (
         <AlertsPop

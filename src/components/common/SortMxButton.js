@@ -4,7 +4,7 @@ import axios from "axios";
 import AlertsPop from "./AlertsPop";
 
 export default function SortMxButton(props) {
-  const [loader, setLoader] = React.useState(false);
+  const [sorter, setSorter] = React.useState(false);
   const [error, setError] = React.useState(false);
   const sortMxLookupHandler = () => {
     if (!props.outputText) {
@@ -12,7 +12,8 @@ export default function SortMxButton(props) {
       return false;
     }
 
-    setLoader(true);
+    props.onUpdateHandler({ loader: !props.loader });
+    setSorter(true);
     const text = {
       outputText: props.outputText,
       separator: props.separator,
@@ -30,7 +31,8 @@ export default function SortMxButton(props) {
           outputText: res.data.emails,
           counter: res.data.totalEmails,
         });
-        setLoader(false);
+        props.onUpdateHandler({ loader: false });
+        setSorter(false);
       })
       .catch((err) => console.log(err.response.data));
   };
@@ -45,10 +47,10 @@ export default function SortMxButton(props) {
         size="medium"
         color="primary"
         onClick={sortMxLookupHandler}
-        disabled={loader}
+        disabled={props.loader}
       >
         {" "}
-        {loader ? <CircularProgress disableShrink /> : "Sort"}
+        {sorter ? <CircularProgress size={25} /> : "Sort"}
       </Button>
       {error ? (
         <AlertsPop
