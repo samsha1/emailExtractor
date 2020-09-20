@@ -75,7 +75,7 @@ const FilterOptions = (props) => {
       <Typography
         component="p"
         variant="caption"
-        style={{ position: "relative", top: "30px", textIndent: "10px" }}
+        className="m-2"
       >
         extract address containing this string:
       </Typography>
@@ -94,7 +94,7 @@ const FilterOptions = (props) => {
         <TextField
           error={props.data.errors.limitEmail ? true : false}
           id="outlined-error-helper-text"
-          label="Limit email per domain"
+          label="Limit email"
           type="text"
           name="limitEmail"
           onChange={handleChange}

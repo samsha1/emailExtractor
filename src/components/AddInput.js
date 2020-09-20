@@ -9,6 +9,7 @@ import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import AlertsPop from "./common/AlertsPop";
+import EmailProviders from "./EmailProviders";
 import Title from "../components/common/Title";
 import DownloadButton from "../components/common/DownloadButton";
 import ValidateButton from "../components/common/ValidateButton";
@@ -119,7 +120,6 @@ class AddInput extends Component {
     // var outputText = this.state.outputText;
     // var a = 0;
     // var ingroup = 0;
-    this.setState({ extractLoading: true, loader: true });
     var groupby = Math.round(this.state.group);
     let string = this.state.addrContainingString;
     let isError = this.validate();
@@ -129,7 +129,9 @@ class AddInput extends Component {
     var doSort = this.state.sort;
     var tld = this.state.tld;
     var inputText = this.state.inputText;
+    console.log(isError);
     if (!isError) {
+      this.setState({ extractLoading: true, loader: true });
       const exData = {
         selectedFile: this.state.selectedFile,
         groupby,
@@ -289,120 +291,133 @@ class AddInput extends Component {
               </div>
             </div>
             <div className="row">
-              <div className="col-12">
-                <div className="d-flex">
-                  <Title>Output Options:</Title>
-                  <Switch
-                    checked={showOutput}
-                    onChange={() =>
-                      this.onUpdateHandler({ showOutput: !showOutput })
-                    }
-                    color="primary"
-                    name="showOutput"
-                    inputProps={{ "aria-label": "primary checkbox" }}
-                  />
+              <div className="col-7">
+                <div className="row">
+                  <div className="col-12">
+                    <div className="d-flex">
+                      <Title>Output Options:</Title>
+                      <Switch
+                        checked={showOutput}
+                        onChange={() =>
+                          this.onUpdateHandler({ showOutput: !showOutput })
+                        }
+                        color="primary"
+                        name="showOutput"
+                        inputProps={{ "aria-label": "primary checkbox" }}
+                      />
+                    </div>
+                    {showOutput ? (
+                      <SeparatorOptions
+                        data={this.state}
+                        handleChange={this.onChange}
+                        onCheckSort={this.onCheckSort}
+                      />
+                    ) : null}
+                  </div>
                 </div>
-                {showOutput ? (
-                  <SeparatorOptions
-                    data={this.state}
-                    handleChange={this.onChange}
-                    onCheckSort={this.onCheckSort}
-                  />
-                ) : null}
-              </div>
-            </div>
-            <div className="row">
-              <div className="col-12">
-                <div className="d-flex">
-                  <Title>Filter Options:</Title>
-                  <Switch
-                    checked={showFilter}
-                    onChange={() =>
-                      this.onUpdateHandler({ showFilter: !showFilter })
-                    }
-                    color="primary"
-                    name="showFilter"
-                    inputProps={{ "aria-label": "primary checkbox" }}
-                  />
+                <div className="row">
+                  <div className="col-12">
+                    <div className="d-flex">
+                      <Title>Filter Options:</Title>
+                      <Switch
+                        checked={showFilter}
+                        onChange={() =>
+                          this.onUpdateHandler({ showFilter: !showFilter })
+                        }
+                        color="primary"
+                        name="showFilter"
+                        inputProps={{ "aria-label": "primary checkbox" }}
+                      />
+                    </div>
+                    {showFilter ? (
+                      <FilterOptions
+                        data={this.state}
+                        handleChange={this.onChange}
+                        setErrors={this.setErrors}
+                      />
+                    ) : null}
+                  </div>
                 </div>
-                {showFilter ? (
-                  <FilterOptions
-                    data={this.state}
-                    handleChange={this.onChange}
-                    setErrors={this.setErrors}
-                  />
-                ) : null}
-              </div>
-            </div>
-            <SortOptions
-              onUpdateHandler={this.onUpdateHandler}
-              handleChange={this.onChange}
-              data={this.state}
-            />
-            <div className="d-flex mt-4">
-              {/* <Title>Have Large Text?</Title> */}
-
-              <label htmlFor="upload-File">
-                <input
-                  style={{ display: "none" }}
-                  id="upload-File"
-                  name="upload-File"
-                  type="file"
-                  onChange={this.onChangeFile}
+                <SortOptions
+                  onUpdateHandler={this.onUpdateHandler}
+                  handleChange={this.onChange}
+                  data={this.state}
                 />
-                <Fab
-                  color="primary"
-                  size="small"
-                  component="span"
-                  aria-label="add"
-                  variant="extended"
-                  disabled={loader}
-                >
-                  {fileLoading ? (
-                    <CircularProgress size={25} />
-                  ) : (
-                    <PublishIcon />
-                  )}{" "}
-                  Large Files
-                </Fab>
-              </label>
+                <div className="d-flex mt-4">
+                  {/* <Title>Have Large Text?</Title> */}
 
-              <Typography
-                component="p"
-                variant="caption"
-                style={{
-                  position: "relative",
-                  top: "10px",
-                  textIndent: "10px",
-                }}
-              >
-                {filename ? filename : null}
-              </Typography>
-            </div>
-            <div className="d-flex mt-4">
-              <Button
-                variant="contained"
-                type="submit"
-                size="medium"
-                color="primary"
-                disabled={loader}
-              >
-                {extractLoading ? <CircularProgress size={25} /> : "Extract"}
-              </Button>
-              <ValidateButton
-                outputText={outputText}
-                onUpdateHandler={this.onUpdateHandler}
-                separator={otherSeparator ? otherSeparator : separator}
-                loader={loader}
-                filepath={filepath}
-              />
-              <SortMxButton
-                outputText={outputText}
-                onUpdateHandler={this.onUpdateHandler}
-                separator={otherSeparator ? otherSeparator : separator}
-                loader={loader}
-                filepath={filepath}
-              />
+                  <label htmlFor="upload-File">
+                    <input
+                      style={{ display: "none" }}
+                      id="upload-File"
+                      name="upload-File"
+                      type="file"
+                      onChange={this.onChangeFile}
+                    />
+                    <Fab
+                      color="primary"
+                      size="small"
+                      component="span"
+                      aria-label="add"
+                      variant="extended"
+                      disabled={loader}
+                    >
+                      {fileLoading ? (
+                        <CircularProgress size={25} />
+                      ) : (
+                        <PublishIcon />
+                      )}{" "}
+                      Large Files
+                    </Fab>
+                  </label>
+
+                  <Typography
+                    component="p"
+                    variant="caption"
+                    style={{
+                      position: "relative",
+                      top: "10px",
+                      textIndent: "10px",
+                    }}
+                  >
+                    {filename ? filename : null}
+                  </Typography>
+                </div>
+                <div className="d-flex mt-4">
+                  <div>
+                    <Button
+                      variant="contained"
+                      type="submit"
+                      size="medium"
+                      color="primary"
+                      disabled={loader}
+                    >
+                      {extractLoading ? (
+                        <CircularProgress size={25} />
+                      ) : (
+                        "Extract"
+                      )}
+                    </Button>
+                  </div>
+                  <ValidateButton
+                    outputText={outputText}
+                    onUpdateHandler={this.onUpdateHandler}
+                    separator={otherSeparator ? otherSeparator : separator}
+                    loader={loader}
+                    filepath={filepath}
+                  />
+                  <SortMxButton
+                    outputText={outputText}
+                    onUpdateHandler={this.onUpdateHandler}
+                    separator={otherSeparator ? otherSeparator : separator}
+                    loader={loader}
+                    filepath={filepath}
+                  />
+                </div>
+              </div>
+              <div className="col-5">
+                <EmailProviders />
+              </div>
             </div>
           </form>
         </div>

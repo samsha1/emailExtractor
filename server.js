@@ -252,12 +252,14 @@ app.post("/api/sortemails", async (req, res) => {
 
       if (isValid) {
         let smtp = mxArray[0]["exchange"];
-        await checkForServiceProvider(smtp, email);
+        const sortedEmails = await checkForServiceProvider(smtp, email);
+        validatedEmails.push(sortedEmails);
+      } else {
+        validatedEmails.push({ others: email, provider: null });
       }
     }),
   ]);
-  var counter = validatedEmails.length;
-  var implodeValidateEmails = validatedEmails.join(separator);
+  console.log(validatedEmails);
 });
 
 async function validateEachEmail(email) {
@@ -265,17 +267,19 @@ async function validateEachEmail(email) {
 }
 
 async function checkForServiceProvider(smtp, email) {
-  const allProviders = "gmail,office365,zimbra,aol,yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,23-reg,strato,postoffice,mimecast,coremail,others".split(
+  const allProviders = "gmail,office365,zimbra,aol,yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,23-reg,strato,postoffice,mimecast,coremail".split(
     ","
   );
-  var providersEmail = [];
+  var providersEmail = {};
   await Promise.all([
     ...allProviders.map(async (provider) => {
-      if (smtp.indexOf(provider) > 0) {
-        providersEmail[provider].push(email);
+      if (smtp.indexOf(provider) > -1) {
+        providersEmail.provider = provider;
+        providersEmail.email = email;
       }
     }),
   ]);
+  return providersEmail;
 }
 
 const port = process.env.PORT || 7000;
