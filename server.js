@@ -13,7 +13,7 @@ const emailValidator = new EmailValidator();
 //Body Parser Middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-const absPath = "public/textFiles";
+const absPath = "src/textFiles";
 
 //Body Parser Middleware
 //app.use(formidable());
@@ -112,6 +112,7 @@ async function readLargeFile(meta) {
     .readFileSync(location, "utf-8")
     .toLowerCase()
     .match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi);
+  //console.log(rawemail);
   if (separator === "newline") separator = "\n";
   if (separator === "other") separator = otherSeparator;
   var norepeat = [];
@@ -204,7 +205,9 @@ app.post("/api/validate", async (req, res) => {
   const rootLocation = path.join(__dirname, absPath + "/" + req.body.filepath);
   const emailToValidate = fs
     .readFileSync(rootLocation, "utf-8")
+    .replace(/\n/g, separator)
     .split(separator);
+  console.log(emailToValidate);
   var validatedEmails = [];
   await Promise.all([
     ...emailToValidate.map(async (email) => {

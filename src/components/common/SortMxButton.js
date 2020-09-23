@@ -51,7 +51,10 @@ export default function SortMxButton(props) {
         {sorter ? <CircularProgress size={25} /> : "Sort"}
       </Button>
       {error ? (
-        <AlertsPop message="No Emails to sort." onHandleError={setErrorBack} />
+        <AlertsPop
+          message="Extract emails first"
+          onHandleError={setErrorBack}
+        />
       ) : (
         ""
       )}
