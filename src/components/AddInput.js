@@ -46,6 +46,7 @@ class AddInput extends Component {
       fileLoading: false,
       loader: false,
       tld: "",
+      sortedEmails: null,
     };
     this.onChange = this.onChange.bind(this);
     //this.onSubmitHandler = this.onSubmitHandler.bind(this);
@@ -212,7 +213,6 @@ class AddInput extends Component {
       showOutput,
       showFilter,
       copied,
-      selectedFile,
       extractLoading,
       counter,
       filepath,
@@ -221,6 +221,7 @@ class AddInput extends Component {
       fileLoading,
       loader,
       filename,
+      sortedEmails,
     } = this.state;
     return (
       <div className="row">
@@ -291,7 +292,7 @@ class AddInput extends Component {
               </div>
             </div>
             <div className="row">
-              <div className="col-7">
+              <div className="col-6">
                 <div className="row">
                   <div className="col-12">
                     <div className="d-flex">
@@ -415,8 +416,13 @@ class AddInput extends Component {
                   />
                 </div>
               </div>
-              <div className="col-5">
-                <EmailProviders />
+              <div className="col-6">
+                {sortedEmails ? (
+                  <div>
+                    <h4>Email Providers</h4>
+                    <EmailProviders sortedEmails={sortedEmails} />
+                  </div>
+                ) : null}
               </div>
             </div>
           </form>

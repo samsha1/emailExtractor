@@ -27,6 +27,10 @@ export default function SortMxButton(props) {
       .then((res) => {
         props.onUpdateHandler({ loader: false });
         setSorter(false);
+        if (res.data.success === true) {
+          //console.log(res.data.data);
+          props.onUpdateHandler({ sortedEmails: res.data.data });
+        }
       })
       .catch((err) => console.log(err.response.data));
   };

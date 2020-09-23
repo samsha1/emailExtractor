@@ -13,7 +13,7 @@ const emailValidator = new EmailValidator();
 //Body Parser Middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-const absPath = "src/textFiles";
+const absPath = "public/textFiles";
 
 //Body Parser Middleware
 //app.use(formidable());
@@ -245,21 +245,42 @@ app.post("/api/sortemails", async (req, res) => {
   const emailForSorter = fs
     .readFileSync(sortFileLocation, "utf-8")
     .split(separator);
-  var validatedEmails = [];
+  var validatedEmails = {};
   await Promise.all([
     ...emailForSorter.map(async (email) => {
-      const { isValid, mxArray } = await legit(email);
+      try {
+        const { isValid, mxArray } = await legit(email);
+        if (isValid) {
+          let smtp = mxArray[0]["exchange"];
 
-      if (isValid) {
-        let smtp = mxArray[0]["exchange"];
-        const sortedEmails = await checkForServiceProvider(smtp, email);
-        validatedEmails.push(sortedEmails);
-      } else {
-        validatedEmails.push({ others: email, provider: null });
+          const sortedEmails = await checkForServiceProvider(smtp, email);
+
+          if (validatedEmails[sortedEmails.provider]) {
+            let providers = validatedEmails[sortedEmails.provider].length;
+            validatedEmails[sortedEmails.provider][providers] =
+              sortedEmails.email;
+          } else {
+            validatedEmails[sortedEmails.provider] = [sortedEmails.email];
+          }
+        } else {
+          console.log(validatedEmails);
+          if (validatedEmails["Others"]) {
+            let othersP = validatedEmails["Others"].length;
+            validatedEmails["Others"][othersP] = email;
+          } else {
+            validatedEmails["Others"] = [email];
+          }
+        }
+      } catch (e) {
+        console.log("Catch an Error: ", e);
       }
     }),
   ]);
-  console.log(validatedEmails);
+  return res.status(200).json({
+    success: true,
+    message: "Successfully Sorted emails",
+    data: validatedEmails,
+  });
 });
 
 async function validateEachEmail(email) {
@@ -267,18 +288,26 @@ async function validateEachEmail(email) {
 }
 
 async function checkForServiceProvider(smtp, email) {
-  const allProviders = "gmail,office365,zimbra,aol,yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,23-reg,strato,postoffice,mimecast,coremail".split(
+  const allProviders = "Gmail,Office365,zimbra,AOL,Yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,23-reg,strato,postoffice,mimecast,coremail".split(
     ","
   );
   var providersEmail = {};
+  // const allP = allProviders.filter((item) => smtp.indexOf(item));
+  // console.log(allP);
   await Promise.all([
     ...allProviders.map(async (provider) => {
-      if (smtp.indexOf(provider) > -1) {
+      if ((await smtp.indexOf(provider.toLowerCase())) > -1) {
         providersEmail.provider = provider;
         providersEmail.email = email;
       }
     }),
   ]);
+  // console.log(providersEmail);
+  if (Object.keys(providersEmail).length === 0) {
+    providersEmail.provider = "Others";
+    providersEmail.email = email;
+  }
+  // console.log(providersEmail);
   return providersEmail;
 }
 
