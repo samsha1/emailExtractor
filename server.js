@@ -5,6 +5,7 @@ const fs = require("fs-extra");
 const legit = require("legit");
 const bodyParser = require("body-parser");
 const EmailValidator = require("email-deep-validator");
+var timeout = require('connect-timeout')
 ///const formidable = require('express-formidable');
 
 const app = express();
@@ -13,7 +14,9 @@ const emailValidator = new EmailValidator();
 //Body Parser Middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-const absPath = "src/textFiles";
+app.use(timeout('600s'));
+app.use(haltOnTimedout);
+const absPath = "public/textFiles";
 
 //Body Parser Middleware
 //app.use(formidable());
@@ -312,6 +315,11 @@ async function checkForServiceProvider(smtp, email) {
   }
   // console.log(providersEmail);
   return providersEmail;
+}
+
+
+function haltOnTimedout (req, res, next) {
+  if (!req.timedout) next()
 }
 
 const port = process.env.PORT || 7000;
