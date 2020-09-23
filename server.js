@@ -5,7 +5,7 @@ const fs = require("fs-extra");
 const legit = require("legit");
 const bodyParser = require("body-parser");
 const EmailValidator = require("email-deep-validator");
-var timeout = require('connect-timeout')
+var timeout = require("connect-timeout");
 ///const formidable = require('express-formidable');
 
 const app = express();
@@ -14,7 +14,7 @@ const emailValidator = new EmailValidator();
 //Body Parser Middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(timeout('600s'));
+app.use(timeout("1200s"));
 app.use(haltOnTimedout);
 const absPath = "public/textFiles";
 
@@ -250,6 +250,7 @@ app.post("/api/sortemails", async (req, res) => {
 
   const emailForSorter = fs
     .readFileSync(sortFileLocation, "utf-8")
+    .replace(/\n/g, separator)
     .split(separator);
   var validatedEmails = {};
   await Promise.all([
@@ -269,16 +270,20 @@ app.post("/api/sortemails", async (req, res) => {
             validatedEmails[sortedEmails.provider] = [sortedEmails.email];
           }
         } else {
-          console.log(validatedEmails);
-          if (validatedEmails["Others"]) {
-            let othersP = validatedEmails["Others"].length;
-            validatedEmails["Others"][othersP] = email;
+          if (validatedEmails["No-mx"]) {
+            let othersP = validatedEmails["No-mx"].length;
+            validatedEmails["No-mx"][othersP] = email;
           } else {
-            validatedEmails["Others"] = [email];
+            validatedEmails["No-mx"] = [email];
           }
         }
       } catch (e) {
-        console.log("Catch an Error: ", e);
+        if (validatedEmails["No-mx"]) {
+          let othersP = validatedEmails["No-mx"].length;
+          validatedEmails["No-mx"][othersP] = email;
+        } else {
+          validatedEmails["No-mx"] = [email];
+        }
       }
     }),
   ]);
@@ -317,9 +322,8 @@ async function checkForServiceProvider(smtp, email) {
   return providersEmail;
 }
 
-
-function haltOnTimedout (req, res, next) {
-  if (!req.timedout) next()
+function haltOnTimedout(req, res, next) {
+  if (!req.timedout) next();
 }
 
 const port = process.env.PORT || 7000;
