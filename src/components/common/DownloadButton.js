@@ -9,7 +9,7 @@ export default function DownloadButton(props) {
       file: props.filepath,
     };
     if (props.filepath !== null) {
-      let filename = props.filepath.match(/textFiles\/(.*)/i)[1];
+      let filename = props.filepath;
       if (!filename) {
         filename = "your-emails.txt";
       }

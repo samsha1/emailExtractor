@@ -228,7 +228,7 @@ async function readLargeFile(meta) {
 
 app.post("/api/download", (req, res) => {
   //console.log(req.body);
-  const file = `${__dirname}${absPath}/${req.body.file}`;
+  const file = `${__dirname}/${absPath}/${req.body.file}`;
   //console.log(file);
   res.download(file);
 });
