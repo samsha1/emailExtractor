@@ -13,7 +13,7 @@ import { Button } from "@material-ui/core";
 
 const useStyles = makeStyles({
   table: {
-    minWidth: 10,
+    minWidth: 250,
   },
 });
 
@@ -105,10 +105,10 @@ export default function SimpleTable(props) {
     <div>
       <TableContainer component={Paper}>
         <div className="d-flex">
-          <Table className={classes.table} aria-label="a dense table">
+          <Table className={classes.table} aria-label="a dense table" size="small">
             <TableHead>
               <TableRow>
-                <TableCell>
+                <TableCell component="th" scope="row">
                   <Checkbox
                     checked={
                       rowsCount.length > 0 &&

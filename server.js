@@ -94,6 +94,7 @@ async function readLargeFile(meta) {
     tld,
     selectedFile,
     inputText,
+    limitEmail,
   } = meta;
 
   console.log(selectedFile);
@@ -120,7 +121,32 @@ async function readLargeFile(meta) {
   if (separator === "other") separator = otherSeparator;
   var norepeat = [];
   var filtermail = [];
+  var emailAfterLimited = [];
+  var listedLimitedEmails = [];
   if (rawemail) {
+    if (limitEmail && limitEmail > 0) {
+      let b = 0;
+      for (var a = 0; a < rawemail.length; a++) {
+        var limitDomainTld = rawemail[a].split(".").pop();
+        if (listedLimitedEmails[limitDomainTld]) {
+          if (listedLimitedEmails[limitDomainTld] >= limitEmail) {
+            // console.log(
+            //   `Max Count for ${limitEmail} is done. so, excluding: ${rawemail[a]}`
+            // );
+            continue;
+          }
+          listedLimitedEmails[limitDomainTld] =
+            listedLimitedEmails[limitDomainTld] + 1;
+        } else {
+          listedLimitedEmails[limitDomainTld] = 1;
+        }
+        emailAfterLimited[b] = rawemail[a];
+        b++;
+        //console.log(listedLimitedEmails);
+      }
+
+      rawemail = emailAfterLimited;
+    }
     if (addrString) {
       console.log("Got Address String");
       let x = 0;
@@ -139,23 +165,27 @@ async function readLargeFile(meta) {
       }
       rawemail = filtermail;
     }
+    //console.log(rawemail);
+    // for (var i = 0; i < rawemail.length; i++) {
+    //   var repeat = 0;
 
-    for (var i = 0; i < rawemail.length; i++) {
-      var repeat = 0;
+    //   // Check for repeated emails routine
+    //   for (var j = i + 1; j < rawemail.length; j++) {
+    //     if (rawemail[i] === rawemail[j]) {
+    //       repeat++;
+    //     }
+    //   }
 
-      // Check for repeated emails routine
-      for (var j = i + 1; j < rawemail.length; j++) {
-        if (rawemail[i] === rawemail[j]) {
-          repeat++;
-        }
-      }
+    //   // Create new array for non-repeated emails
+    //   if (repeat === 0) {
+    //     norepeat[a] = rawemail[i];
+    //     a++;
+    //   }
+    // }
 
-      // Create new array for non-repeated emails
-      if (repeat === 0) {
-        norepeat[a] = rawemail[i];
-        a++;
-      }
-    }
+    //console.log(norepeat);
+    norepeat = Array.from(new Set(rawemail));
+    //console.log(norepeat);
 
     if (Boolean(sort)) norepeat = norepeat.sort();
     var email = "";

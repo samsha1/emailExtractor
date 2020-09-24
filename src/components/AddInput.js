@@ -129,6 +129,7 @@ class AddInput extends Component {
     var separator = this.state.separator;
     var doSort = this.state.sort;
     var tld = this.state.tld;
+    var limitEmail = this.state.limitEmail;
     var inputText = this.state.inputText;
     console.log(isError);
     if (!isError) {
@@ -142,6 +143,7 @@ class AddInput extends Component {
         getOnly,
         sort: doSort,
         tld,
+        limitEmail,
         otherSeparator,
       };
       axios
