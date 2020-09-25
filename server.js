@@ -17,6 +17,9 @@ app.use(bodyParser.json());
 app.use(timeout("1200s"));
 app.use(haltOnTimedout);
 const absPath = "public/textFiles";
+const allProviders = "gmail,office365,zimbra,aol,yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,23-reg,strato,postoffice,mimecast,coremail,google".split(
+  ","
+);
 
 //Body Parser Middleware
 //app.use(formidable());
@@ -288,10 +291,8 @@ app.post("/api/sortemails", async (req, res) => {
       try {
         const { isValid, mxArray } = await legit(email);
         if (isValid) {
-          let smtp = mxArray[0]["exchange"];
-
-          const sortedEmails = await checkForServiceProvider(smtp, email);
-
+          // let smtp = mxArray[0]["exchange"];
+          const sortedEmails = await checkForServiceProvider(mxArray, email);
           if (validatedEmails[sortedEmails.provider]) {
             let providers = validatedEmails[sortedEmails.provider].length;
             validatedEmails[sortedEmails.provider][providers] =
@@ -328,21 +329,23 @@ async function validateEachEmail(email) {
   return await emailValidator.verify(email);
 }
 
-async function checkForServiceProvider(smtp, email) {
-  const allProviders = "Gmail,Office365,zimbra,AOL,Yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,23-reg,strato,postoffice,mimecast,coremail".split(
-    ","
-  );
+async function checkForServiceProvider(mxArray, email) {
   var providersEmail = {};
   // const allP = allProviders.filter((item) => smtp.indexOf(item));
   // console.log(allP);
-  await Promise.all([
-    ...allProviders.map(async (provider) => {
-      if ((await smtp.indexOf(provider.toLowerCase())) > -1) {
-        providersEmail.provider = provider;
+  for (let i = 0; i < allProviders.length; i++) {
+    let listedProvider = allProviders[i];
+    for (j = 0; j < mxArray.length; j++) {
+      if (mxArray[j]["exchange"].toLowerCase().indexOf(listedProvider) > -1) {
+        if (listedProvider === "google") {
+          listedProvider = "gmail";
+        }
+        providersEmail.provider = listedProvider;
         providersEmail.email = email;
+        return providersEmail;
       }
-    }),
-  ]);
+    }
+  }
   // console.log(providersEmail);
   if (Object.keys(providersEmail).length === 0) {
     providersEmail.provider = "Others";
