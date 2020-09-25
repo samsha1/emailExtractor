@@ -331,21 +331,25 @@ async function validateEachEmail(email) {
 
 async function checkForServiceProvider(mxArray, email) {
   var providersEmail = {};
+  var foundProvider = false;
   // const allP = allProviders.filter((item) => smtp.indexOf(item));
   // console.log(allP);
-  for (let i = 0; i < allProviders.length; i++) {
-    let listedProvider = allProviders[i];
-    for (j = 0; j < mxArray.length; j++) {
-      if (mxArray[j]["exchange"].toLowerCase().indexOf(listedProvider) > -1) {
-        if (listedProvider === "google") {
-          listedProvider = "gmail";
-        }
-        providersEmail.provider = listedProvider;
-        providersEmail.email = email;
-        return providersEmail;
+  await Promise.all([
+    ...allProviders.map(async (provider) => {
+      if (foundProvider === false) {
+        mxArray.map(async (exc) => {
+          let exchange = exc["exchange"];
+          if (foundProvider === false) {
+            if ((await exchange.indexOf(provider)) > -1) {
+              providersEmail.provider = provider;
+              providersEmail.email = email;
+              foundProvider = true;
+            }
+          }
+        });
       }
-    }
-  }
+    }),
+  ]);
   // console.log(providersEmail);
   if (Object.keys(providersEmail).length === 0) {
     providersEmail.provider = "Others";
