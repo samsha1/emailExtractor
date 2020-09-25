@@ -421,7 +421,6 @@ class AddInput extends Component {
               <div className="col-6">
                 {sortedEmails ? (
                   <div>
-                    <h4>Email Providers</h4>
                     <EmailProviders sortedEmails={sortedEmails} />
                   </div>
                 ) : null}
