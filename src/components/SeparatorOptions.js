@@ -53,7 +53,7 @@ const SeparatorOptions = (props) => {
       {props.data.separator === "other" ? ifOther : ""}
       <div className="ml-4 mt-1">
         <TextField
-          id="standard-basic"
+          id="group-addresses"
           label="Group Addresses"
           name="group"
           value={props.data.group}
