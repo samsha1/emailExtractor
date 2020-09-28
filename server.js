@@ -17,7 +17,7 @@ app.use(bodyParser.json());
 app.use(timeout("1200s"));
 app.use(haltOnTimedout);
 const absPath = "src/textFiles";
-const allProviders = "gmail,office365,zimbra,aol,yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,23-reg,strato,postoffice,mimecast,coremail,google".split(
+const allProviders = "gmail,office365,zimbra,aol,yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,23-reg,strato,postoffice,mimecast,coremail".split(
   ","
 );
 
@@ -287,25 +287,28 @@ app.post("/api/sortemails", async (req, res) => {
   var validatedEmails = {};
   await Promise.all([
     ...emailForSorter.map(async (email) => {
-      const {
-        providerAlreadyExist,
-        providersEmail,
-      } = await checkProviderAlreadyExist(email);
-      if (providerAlreadyExist === true) {
-        if (validatedEmails[providersEmail.provider]) {
-          let providers = validatedEmails[providersEmail].length;
-          console.log(
-            `Sorted Emails Without Legit Libary: ${provider}` + " " + email
-          );
-          console.log(`Total Email: ${providers}`);
-          validatedEmails[providersEmail.provider][providers] = email;
-        } else {
-          console.log("Sorted Emails first time: " + email);
-          validatedEmails[providersEmail.provider] = [email];
+      var foundProviderWithoutLegit = false;
+      allProviders.map(async (provider) => {
+        if (foundProviderWithoutLegit === false) {
+          if (email.indexOf(provider) > -1) {
+            if (validatedEmails[provider]) {
+              let providers = validatedEmails[provider].length;
+              // console.log(
+              //   `Sorted Emails Without Legit Libary: ${provider}` + " " + email
+              // );
+              // console.log(`Total Email: ${providers}`);
+              validatedEmails[provider][providers] = email;
+            } else {
+              //console.log("Sorted Emails first time: " + email);
+              validatedEmails[provider] = [email];
+            }
+            foundProviderWithoutLegit = true;
+          }
         }
-      } else {
+      });
+      if (foundProviderWithoutLegit === false) {
         try {
-          console.log(`Sorted Emails with Legit Libary:` + " " + email);
+          //console.log(`Sorted Emails with Legit Libary:` + " " + email);
           const { isValid, mxArray } = await legit(email);
           if (isValid) {
             // let smtp = mxArray[0]["exchange"];
@@ -335,33 +338,23 @@ app.post("/api/sortemails", async (req, res) => {
         }
       }
     }),
-  ]);
-  return res.status(200).json({
-    success: true,
-    message: "Successfully Sorted emails",
-    data: validatedEmails,
-  });
+  ])
+    .then(() => {
+      return res.status(200).json({
+        success: true,
+        message: "Successfully Sorted emails",
+        data: validatedEmails,
+      });
+    })
+    .catch((e) => {
+      console.log(e);
+      return res.status(200).json({
+        success: false,
+        message: "Something Went Wrong!",
+        data: {},
+      });
+    });
 });
-
-async function checkProviderAlreadyExist(email) {
-  var providersEmail = {};
-  var foundProviderWithoutLegit = false;
-  await Promise.all([
-    ...allProviders.map(async (provider) => {
-      if (foundProviderWithoutLegit === false) {
-        if (email.indexOf(provider) > -1) {
-          if (provider === "google") {
-            provider = "gmail";
-          }
-          providersEmail.provider = provider;
-          providersEmail.email = email;
-          foundProviderWithoutLegit = true;
-        }
-      }
-    }),
-  ]);
-  return { foundProviderWithoutLegit, providersEmail };
-}
 
 async function validateEachEmail(email) {
   return await emailValidator.verify(email);
@@ -378,9 +371,6 @@ async function checkForServiceProvider(mxArray, email) {
         let exchange = exc["exchange"];
         if (foundProvider === false) {
           if ((await exchange.indexOf(provider)) > -1) {
-            if (provider === "google") {
-              provider = "gmail";
-            }
             providersEmail.provider = provider;
             providersEmail.email = email;
             foundProvider = true;
@@ -389,7 +379,6 @@ async function checkForServiceProvider(mxArray, email) {
       });
     }
   });
-
   // console.log(providersEmail);
   if (Object.keys(providersEmail).length === 0) {
     providersEmail.provider = "Others";
