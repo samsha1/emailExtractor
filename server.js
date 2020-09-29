@@ -17,7 +17,7 @@ app.use(bodyParser.json());
 app.use(timeout("1200s"));
 app.use(haltOnTimedout);
 const absPath = "src/textFiles";
-const allProviders = "gmail,office365,zimbra,aol,yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,23-reg,strato,postoffice,mimecast,coremail".split(
+const allProviders = "gmail,microsoft,zimbra,aol,yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,23-reg,strato,postoffice,mimecast,coremail".split(
   ","
 );
 
@@ -288,6 +288,25 @@ app.post("/api/sortemails", async (req, res) => {
   await Promise.all([
     ...emailForSorter.map(async (email) => {
       var foundProviderWithoutLegit = false;
+      const popEmail = email.match(/@(.*?)\./i)[1];
+      const expectedEmails = [
+        "outlook",
+        "hotmail",
+        "office365",
+        "microsoft",
+        "msn",
+      ];
+      if (expectedEmails.indexOf(popEmail) > -1) {
+        if (validatedEmails["microsoft"]) {
+          let providers = validatedEmails["microsoft"].length;
+          validatedEmails["microsoft"][providers] = email;
+        } else {
+          //console.log("Sorted Emails first time: " + email);
+          validatedEmails["microsoft"] = [email];
+        }
+        foundProviderWithoutLegit = true;
+        return;
+      }
       allProviders.map(async (provider) => {
         if (foundProviderWithoutLegit === false) {
           if (email.indexOf(provider) > -1) {
