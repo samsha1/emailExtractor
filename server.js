@@ -16,8 +16,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(timeout("1200s"));
 app.use(haltOnTimedout);
-const absPath = "src/textFiles";
-const allProviders = "gmail,microsoft,zimbra,aol,yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,23-reg,strato,postoffice,mimecast,coremail".split(
+const absPath = "public/textFiles";
+const allProviders = "gmail,microsoft,zimbra,aol,yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,23-reg,strato,postoffice,mimecast,coremail,outlook,hotmail,office365,msn,live,google,googlemail".split(
   ","
 );
 
@@ -288,34 +288,17 @@ app.post("/api/sortemails", async (req, res) => {
   await Promise.all([
     ...emailForSorter.map(async (email) => {
       var foundProviderWithoutLegit = false;
-      const popEmail = email.match(/@(.*?)\./i)[1];
-      const expectedEmails = [
-        "outlook",
-        "hotmail",
-        "office365",
-        "microsoft",
-        "msn",
-      ];
-      if (expectedEmails.indexOf(popEmail) > -1) {
-        if (validatedEmails["microsoft"]) {
-          let providers = validatedEmails["microsoft"].length;
-          validatedEmails["microsoft"][providers] = email;
-        } else {
-          //console.log("Sorted Emails first time: " + email);
-          validatedEmails["microsoft"] = [email];
-        }
-        foundProviderWithoutLegit = true;
-        return;
-      }
-      allProviders.map(async (provider) => {
+      await allProviders.map(async (rawprovider) => {
         if (foundProviderWithoutLegit === false) {
-          if (email.indexOf(provider) > -1) {
+          if (email.split("@")[1].indexOf(rawprovider) > -1) {
+            let provider = await checkCommonProvider(rawprovider);
+            console.log(provider);
             if (validatedEmails[provider]) {
               let providers = validatedEmails[provider].length;
-              // console.log(
-              //   `Sorted Emails Without Legit Libary: ${provider}` + " " + email
-              // );
-              // console.log(`Total Email: ${providers}`);
+              console.log(
+                `Sorted Emails Without Legit Libary: ${provider}` + " " + email
+              );
+              console.log(`Total Email: ${providers}`);
               validatedEmails[provider][providers] = email;
             } else {
               //console.log("Sorted Emails first time: " + email);
@@ -326,9 +309,10 @@ app.post("/api/sortemails", async (req, res) => {
         }
       });
       if (foundProviderWithoutLegit === false) {
+        console.log(`Sorting Emails with Legit Libary:` + " " + email);
         try {
-          //console.log(`Sorted Emails with Legit Libary:` + " " + email);
           const { isValid, mxArray } = await legit(email);
+          console.log("EMAIL VALID");
           if (isValid) {
             // let smtp = mxArray[0]["exchange"];
             const sortedEmails = await checkForServiceProvider(mxArray, email);
@@ -382,15 +366,14 @@ async function validateEachEmail(email) {
 async function checkForServiceProvider(mxArray, email) {
   var providersEmail = {};
   var foundProvider = false;
-  // const allP = allProviders.filter((item) => smtp.indexOf(item));
-  // console.log(allP);
-  allProviders.map(async (provider) => {
+  //console.log(mxArray);
+  await allProviders.map(async (provider) => {
     if (foundProvider === false) {
       mxArray.map(async (exc) => {
-        let exchange = exc["exchange"];
+        let exchange = exc["exchange"].toLowerCase();
         if (foundProvider === false) {
           if ((await exchange.indexOf(provider)) > -1) {
-            providersEmail.provider = provider;
+            providersEmail.provider = await checkCommonProvider(provider);
             providersEmail.email = email;
             foundProvider = true;
           }
@@ -405,6 +388,33 @@ async function checkForServiceProvider(mxArray, email) {
   }
   // console.log(providersEmail);
   return providersEmail;
+}
+
+async function checkCommonProvider(provider) {
+  let microsoftEmails = [
+    "outlook",
+    "hotmail",
+    "office365",
+    "microsoft",
+    "msn",
+    "live",
+  ];
+
+  let googlEmails = ["google", "gmail", "googlemail"];
+
+  if (microsoftEmails.includes(provider)) {
+    console.log(
+      "Found MIcrosoft emails, so, asserting new providers:" + provider
+    );
+    return "microsoft";
+  }
+
+  if (googlEmails.includes(provider)) {
+    console.log("Found Google emails, so, asserting new providers:" + provider);
+    return "gmail";
+  }
+
+  return provider;
 }
 
 function haltOnTimedout(req, res, next) {
