@@ -17,7 +17,8 @@
 .env.development.local
 .env.test.local
 .env.production.local
-
+sirius-software-key.pem
+src/textFiles
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
