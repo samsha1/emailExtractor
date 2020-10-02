@@ -394,12 +394,12 @@ const validateEmailAddress = (emailAddress) => {
   return new Promise((resolve, reject) => {
     const splitEmail = emailAddress.split("@");
     mxLookup(splitEmail[1], 1000000, function (err, mx) {
-      if (err) {
-        console.log("Err: " + err);
-        return;
-      }
+      // if (err) {
+      //   console.log("Err: " + err);
+      //   return;
+      // }
 
-      console.log("Checking mx: " + mx[0]["exchange"]);
+      //console.log("Checking mx: " + mx[0]["exchange"]);
       //console.log(mx);
 
       //throw new Error("Whatever");
