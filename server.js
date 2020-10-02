@@ -2,7 +2,8 @@ const express = require("express");
 var multer = require("multer");
 const path = require("path");
 const fs = require("fs-extra");
-const legit = require("legit");
+// const legit = require("legit");
+const dns = require("dns");
 const bodyParser = require("body-parser");
 const EmailValidator = require("email-deep-validator");
 var timeout = require("connect-timeout");
@@ -17,7 +18,7 @@ app.use(bodyParser.json());
 app.use(timeout("1200s"));
 app.use(haltOnTimedout);
 const absPath = "public/textFiles";
-const allProviders = "gmail,microsoft,zimbra,aol,yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,23-reg,strato,postoffice,mimecast,coremail,outlook,hotmail,office365,msn,live,google,googlemail".split(
+const allProviders = "gmail,microsoft,zimbra,aol,yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,23-reg,strato,postoffice,mimecast,coremail,outlook,hotmail,office365,msn,live,google,googlemail,cloudfare".split(
   ","
 );
 
@@ -288,9 +289,10 @@ app.post("/api/sortemails", async (req, res) => {
   await Promise.all([
     ...emailForSorter.map(async (email) => {
       var foundProviderWithoutLegit = false;
+      var regEmail = email.match(/@(.*?)\./i)[1];
       await allProviders.map(async (rawprovider) => {
         if (foundProviderWithoutLegit === false) {
-          if (email.split("@")[1].indexOf(rawprovider) > -1) {
+          if (regEmail == rawprovider) {
             let provider = await checkCommonProvider(rawprovider);
             console.log(provider);
             if (validatedEmails[provider]) {
@@ -311,19 +313,27 @@ app.post("/api/sortemails", async (req, res) => {
       if (foundProviderWithoutLegit === false) {
         console.log(`Sorting Emails with Legit Libary:` + " " + email);
         try {
-          const { isValid, mxArray } = await legit(email);
-          console.log("EMAIL VALID");
+          const { isValid, mxArray } = await validateEmailAddress(email);
+          console.log(isValid);
+          console.log(mxArray);
+          //throw new Error("Stoop now");
           if (isValid) {
             // let smtp = mxArray[0]["exchange"];
+            console.log("EMAIL VALID For Email: " + email);
             const sortedEmails = await checkForServiceProvider(mxArray, email);
             if (validatedEmails[sortedEmails.provider]) {
+              console.log(
+                "Added To Associated Provider: " + sortedEmails.provider
+              );
               let providers = validatedEmails[sortedEmails.provider].length;
               validatedEmails[sortedEmails.provider][providers] =
                 sortedEmails.email;
+              console.log(`Total Email: ${providers}`);
             } else {
               validatedEmails[sortedEmails.provider] = [sortedEmails.email];
             }
           } else {
+            console.log("EMAIL invalid for: " + email);
             if (validatedEmails["No-mx"]) {
               let othersP = validatedEmails["No-mx"].length;
               validatedEmails["No-mx"][othersP] = email;
@@ -332,6 +342,8 @@ app.post("/api/sortemails", async (req, res) => {
             }
           }
         } catch (e) {
+          console.log("EMAIL Exception for: " + email);
+          console.log("Exception Message: " + e.message);
           if (validatedEmails["No-mx"]) {
             let othersP = validatedEmails["No-mx"].length;
             validatedEmails["No-mx"][othersP] = email;
@@ -363,16 +375,62 @@ async function validateEachEmail(email) {
   return await emailValidator.verify(email);
 }
 
+async function mxLookup(domain, timeout, callback) {
+  var callbackCalled = false;
+  var doCallback = function (err, domains) {
+    if (callbackCalled) return;
+    callbackCalled = true;
+    callback(err, domains);
+  };
+
+  setTimeout(function () {
+    doCallback(new Error("Timeout exceeded"), null);
+  }, timeout);
+
+  dns.resolveMx(domain, doCallback);
+}
+
+const validateEmailAddress = (emailAddress) => {
+  return new Promise((resolve, reject) => {
+    const splitEmail = emailAddress.split("@");
+    mxLookup(splitEmail[1], 1000000, function (err, mx) {
+      if (err) {
+        console.log("Err: " + err);
+        return;
+      }
+
+      console.log("Checking mx: " + mx[0]["exchange"]);
+      //console.log(mx);
+
+      //throw new Error("Whatever");
+      if (typeof mx != "undefined") {
+        mx.length > 0
+          ? resolve({ isValid: true, mxArray: mx })
+          : resolve({ isValid: false, mxArray: null });
+      } else if (err.code == "ENOTFOUND") {
+        console.log("Email Not Found: " + emailAddress);
+        resolve({ isValid: false, mxArray: null, mxRecordSetExists: false });
+      } else {
+        console.log("Error Exception from ETimeOut: " + err.code);
+        reject(new Error(err.code));
+      }
+    });
+  });
+};
+
 async function checkForServiceProvider(mxArray, email) {
   var providersEmail = {};
   var foundProvider = false;
   //console.log(mxArray);
   await allProviders.map(async (provider) => {
     if (foundProvider === false) {
-      mxArray.map(async (exc) => {
-        let exchange = exc["exchange"].toLowerCase();
+      await mxArray.map(async (exc) => {
+        let exchange = exc["exchange"].toLowerCase().split(".");
+        console.log(exchange);
+        console.log(exchange[exchange.length - 2]);
         if (foundProvider === false) {
-          if ((await exchange.indexOf(provider)) > -1) {
+          console.log("False Provider: " + provider);
+          if (exchange[exchange.length - 2] == provider) {
             providersEmail.provider = await checkCommonProvider(provider);
             providersEmail.email = email;
             foundProvider = true;
@@ -400,7 +458,7 @@ async function checkCommonProvider(provider) {
     "live",
   ];
 
-  let googlEmails = ["google", "gmail", "googlemail"];
+  let googlEmails = ["google", "gmail", "googlemail", "cloudfare"];
 
   if (microsoftEmails.includes(provider)) {
     console.log(
@@ -432,5 +490,7 @@ if (process.env.NODE_ENV === "production") {
     res.sendFile(path.resolve(__dirname, "build", "index.html"));
   });
 }
-
-app.listen(port, () => console.log(`Server running on port ${port}`));
+var server = app.listen(port, () =>
+  console.log(`Server running on port ${port}`)
+);
+server.setTimeout(500000);
