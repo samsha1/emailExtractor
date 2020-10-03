@@ -6,7 +6,7 @@ const fs = require("fs-extra");
 const dns = require("dns");
 const bodyParser = require("body-parser");
 const EmailValidator = require("email-deep-validator");
-var timeout = require("connect-timeout");
+process.env.UV_THREADPOOL_SIZE = 128;
 ///const formidable = require('express-formidable');
 
 const app = express();
@@ -15,8 +15,6 @@ const emailValidator = new EmailValidator();
 //Body Parser Middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(timeout("1200s"));
-app.use(haltOnTimedout);
 const absPath = "public/textFiles";
 const allProviders = "gmail,microsoft,zimbra,aol,yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,23-reg,strato,postoffice,mimecast,coremail,outlook,hotmail,office365,msn,live,google,googlemail,cloudfare".split(
   ","
@@ -375,25 +373,48 @@ async function validateEachEmail(email) {
   return await emailValidator.verify(email);
 }
 
-async function mxLookup(domain, timeout, callback) {
-  var callbackCalled = false;
-  var doCallback = function (err, domains) {
-    if (callbackCalled) return;
-    callbackCalled = true;
-    callback(err, domains);
-  };
+async function mxLookup(domain, retryTimes, retryDelay, callback) {
+  var cntr = 0;
+  async function run() {
+    // try your async operation
+    dns.resolveMx(domain, function (err, data) {
+      ++cntr;
+      if (err) {
+        if (cntr >= retryTimes) {
+          // if it fails too many times, just send the error out
+          console.log("Failed Too Many Times: " + cntr);
+          callback(err);
+        } else {
+          // try again after a delay
+          console.log("Trying Again: " + retryTimes);
+          setTimeout(run, retryDelay);
+        }
+      } else {
+        // success, send the data out
+        callback(err, data);
+      }
+    });
+  }
 
-  setTimeout(function () {
-    doCallback(new Error("Timeout exceeded"), null);
-  }, timeout);
+  run();
+  // var callbackCalled = false;
+  // var doCallback = function (err, domains) {
+  //   if (callbackCalled) return;
+  //   callbackCalled = true;
+  //   callback(err, domains);
+  // };
 
-  dns.resolveMx(domain, doCallback);
+  // setTimeout(function () {
+  //   doCallback(new Error("Timeout exceeded"), null);
+  // }, timeout);
+
+  // dns.resolveMx(domain, doCallback);
 }
 
 const validateEmailAddress = (emailAddress) => {
   return new Promise((resolve, reject) => {
     const splitEmail = emailAddress.split("@");
-    mxLookup(splitEmail[1], 1000000, function (err, mx) {
+    mxLookup(splitEmail[1], 10, 500, function (err, mx) {
       // if (err) {
       //   console.log("Err: " + err);
       //   return;
@@ -404,7 +425,7 @@ const validateEmailAddress = (emailAddress) => {
 
       //throw new Error("Whatever");
       if (typeof mx != "undefined") {
-        mx.length > 0
+        mx
           ? resolve({ isValid: true, mxArray: mx })
           : resolve({ isValid: false, mxArray: null });
       } else if (err.code == "ENOTFOUND") {
@@ -473,10 +494,6 @@ async function checkCommonProvider(provider) {
   }
 
   return provider;
-}
-
-function haltOnTimedout(req, res, next) {
-  if (!req.timedout) next();
 }
 
 const port = process.env.PORT || 7000;
