@@ -232,6 +232,8 @@ class AddInput extends Component {
             <AlertsPop
               handleClipboard={this.handleClipboard}
               message="Emails copied to clipboard."
+              status="success"
+              hideduration="2000"
             />
           ) : (
             ""

@@ -15,8 +15,8 @@ const emailValidator = new EmailValidator();
 //Body Parser Middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-const absPath = "public/textFiles";
-const allProviders = "gmail,microsoft,zimbra,aol,yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,23-reg,strato,postoffice,mimecast,coremail,outlook,hotmail,office365,msn,live,google,googlemail,cloudfare".split(
+const absPath = "src/textFiles";
+const allProviders = "gmail,microsoft,zimbra,aol,yahoo,godaddy,backspace,qq,netease,263,aliyun,namecheap,networksolutions,hinet,hibox,hiworks,synaq,mweb.co.za,1and1,yandex,cn4e,netvigator,domainlocalhost,comcast,arsmtp,aruba,daum,worksmobile,t-online,protonmail,register.it,naver,mailplug,mail.ru,global-mail.cn,rediffmailpro,serviciodecorreo,redtailtechnology,chinaemail.cn,zmail.net.cn,yzigher,fusemail,barracuda,ukraine,proofpoint,123-reg,strato,postoffice,mimecast,coremail,outlook,hotmail,office365,msn,live,google,googlemail,cloudfare,yahoodns".split(
   ","
 );
 
@@ -480,6 +480,7 @@ async function checkCommonProvider(provider) {
   ];
 
   let googlEmails = ["google", "gmail", "googlemail", "cloudfare"];
+  let yahooEmails = ["yahoo", "yahoodns"];
 
   if (microsoftEmails.includes(provider)) {
     console.log(
@@ -491,6 +492,11 @@ async function checkCommonProvider(provider) {
   if (googlEmails.includes(provider)) {
     console.log("Found Google emails, so, asserting new providers:" + provider);
     return "gmail";
+  }
+
+  if (yahooEmails.includes(provider)) {
+    console.log("Found Google emails, so, asserting new providers:" + provider);
+    return "yahoo";
   }
 
   return provider;

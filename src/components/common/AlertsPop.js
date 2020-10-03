@@ -1,5 +1,6 @@
 import React from "react";
 import Snackbar from "@material-ui/core/Snackbar";
+import MuiAlert from "@material-ui/lab/Alert";
 import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles((theme) => ({
@@ -10,6 +11,10 @@ const useStyles = makeStyles((theme) => ({
     },
   },
 }));
+
+function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 const AlertsPop = (props) => {
   const classes = useStyles();
@@ -31,11 +36,14 @@ const AlertsPop = (props) => {
     <div className={classes.root}>
       <Snackbar
         open={open}
-        autoHideDuration={2000}
+        autoHideDuration={props.hideduration}
         onClose={handleClose}
-        message={props.message}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      ></Snackbar>
+      >
+        <Alert onClose={handleClose} {...props} severity={props.status}>
+          {props.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

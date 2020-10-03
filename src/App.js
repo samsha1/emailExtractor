@@ -50,8 +50,8 @@ const useStyles = makeStyles((theme) => ({
     height: "100vh",
   },
   container: {
-    paddingTop: theme.spacing(4),
-    paddingBottom: theme.spacing(4),
+    paddingTop: theme.spacing(0),
+    paddingBottom: theme.spacing(0),
   },
   button: {
     margin: theme.spacing(2),

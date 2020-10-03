@@ -6,9 +6,11 @@ import AlertsPop from "./AlertsPop";
 export default function SortMxButton(props) {
   const [sorter, setSorter] = React.useState(false);
   const [error, setError] = React.useState(false);
+  const [message, setMessage] = React.useState("");
   const sortMxLookupHandler = () => {
     if (!props.outputText) {
       setError(true);
+      setMessage("Extract emails first");
       return false;
     }
 
@@ -27,12 +29,19 @@ export default function SortMxButton(props) {
       .then((res) => {
         props.onUpdateHandler({ loader: false });
         setSorter(false);
-        if (res.data.success === true) {
-          //console.log(res.data.data);
-          props.onUpdateHandler({ sortedEmails: res.data.data });
+        if (res.status === 200) {
+          if (res.data.success === true) {
+            //console.log(res.data.data);
+            props.onUpdateHandler({ sortedEmails: res.data.data });
+          }
         }
       })
-      .catch((err) => console.log(err.response.data));
+      .catch((err) => {
+        props.onUpdateHandler({ loader: false });
+        setSorter(false);
+        setError(true);
+        setMessage("Something Went Wrong!");
+      });
   };
 
   const setErrorBack = () => {
@@ -52,8 +61,10 @@ export default function SortMxButton(props) {
       </Button>
       {error ? (
         <AlertsPop
-          message="Extract emails first"
+          message={message}
           onHandleError={setErrorBack}
+          hideduration={message == "Extract emails first" ? 4000 : 60000}
+          status="error"
         />
       ) : (
         ""
