@@ -21,20 +21,33 @@ export default function SortMxButton(props) {
       filepath: props.filepath,
     };
     axios({
-      url: "/api/sortemails",
+      url: "/api/setsortstat",
       method: "POST",
       data: text,
       headers: { "Content-Type": "application/json" },
     })
-      .then((res) => {
-        props.onUpdateHandler({ loader: false });
-        setSorter(false);
-        if (res.status === 200) {
-          if (res.data.success === true) {
-            //console.log(res.data.data);
-            props.onUpdateHandler({ sortedEmails: res.data.data });
-          }
-        }
+      .then((resp) => {
+        props.onUpdateHandler({ sorterLoader: true });
+        let unique_id = resp.data.unique_id;
+        getSorterStat(unique_id);
+        axios
+          .post("/api/sortemails", { unique_id, separator: props.separator })
+          .then((res) => {
+            props.onUpdateHandler({ loader: false });
+            setSorter(false);
+            if (res.status === 200) {
+              if (res.data.success === true) {
+                //console.log(res.data.data);
+                props.onUpdateHandler({ sortedEmails: res.data.data });
+              }
+            }
+          })
+          .catch((err) => {
+            props.onUpdateHandler({ loader: false });
+            setSorter(false);
+            setError(true);
+            setMessage("Something Went Wrong!");
+          });
       })
       .catch((err) => {
         props.onUpdateHandler({ loader: false });
@@ -47,6 +60,28 @@ export default function SortMxButton(props) {
   const setErrorBack = () => {
     setError(false);
   };
+
+  async function getSorterStat(id) {
+    axios.get(`/api/getsortstat/${id}`).then((res) => {
+      if (res.data.status === "completed") {
+        console.log("Sorting Completed");
+        props.onUpdateHandler({ loader: false });
+        props.onUpdateHandler({ sorterLoader: false });
+        setSorter(false);
+        // if (res.status === 200) {
+        //   if (res.data.success === true) {
+        //     //console.log(res.data.data);
+        //     props.onUpdateHandler({ sortedEmails: res.data.data });
+        //   }
+        // }
+      } else {
+        props.onUpdateHandler({ processedEmails: res.data.count });
+        setTimeout(() => {
+          getSorterStat(id);
+        }, 5000);
+      }
+    });
+  }
   return (
     <div className="ml-2">
       <Button
@@ -63,7 +98,7 @@ export default function SortMxButton(props) {
         <AlertsPop
           message={message}
           onHandleError={setErrorBack}
-          hideduration={message == "Extract emails first" ? 4000 : 60000}
+          hideduration={message === "Extract emails first" ? 4000 : 60000}
           status="error"
         />
       ) : (

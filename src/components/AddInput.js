@@ -47,6 +47,8 @@ class AddInput extends Component {
       loader: false,
       tld: "",
       sortedEmails: null,
+      sorterLoader: false,
+      processedEmails: 0,
     };
     this.onChange = this.onChange.bind(this);
     //this.onSubmitHandler = this.onSubmitHandler.bind(this);
