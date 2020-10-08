@@ -18,6 +18,7 @@ import { Fab, Button, CircularProgress } from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import axios from "axios";
 import SortMxButton from "./common/SortMxButton";
+import SorterMainLoader from "../components/common/SorterMainLoader";
 
 class AddInput extends Component {
   constructor() {
@@ -226,6 +227,8 @@ class AddInput extends Component {
       loader,
       filename,
       sortedEmails,
+      sorterLoader,
+      processedEmails,
     } = this.state;
     return (
       <div className="row">
@@ -423,11 +426,19 @@ class AddInput extends Component {
                 </div>
               </div>
               <div className="col-6">
-                {sortedEmails ? (
+                {sortedEmails && !sorterLoader ? (
                   <div>
                     <EmailProviders sortedEmails={sortedEmails} />
                   </div>
-                ) : null}
+                ) : (
+                  <div>
+                    <SorterMainLoader
+                      sorterLoader={sorterLoader}
+                      counter={counter}
+                      processedEmails={processedEmails}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </form>

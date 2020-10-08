@@ -393,7 +393,7 @@ app.post("/api/sortemails", async (req, res) => {
               }
             }
           });
-          await saveProviderStat(unique_id, totalEmails, "processing");
+          //await saveProviderStat(unique_id, totalEmails, "processing");
           if (foundProviderWithoutLegit === false) {
             console.log(`Sorting Emails with Legit Libary:` + " " + email);
             try {
@@ -443,9 +443,12 @@ app.post("/api/sortemails", async (req, res) => {
                 totalEmails++;
               }
             }
-            await saveProviderStat(unique_id, totalEmails, "processing");
+            // await saveProviderStat(unique_id, totalEmails, "processing");
           }
         }),
+        setTimeout(() => {
+          saveProviderStat(unique_id, totalEmails, "processing");
+        }, 5000),
       ])
         .then(() => {
           saveProviderStat(unique_id, totalEmails, "completed");

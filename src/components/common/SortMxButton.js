@@ -14,7 +14,10 @@ export default function SortMxButton(props) {
       return false;
     }
 
-    props.onUpdateHandler({ loader: !props.loader });
+    props.onUpdateHandler({ loader: true });
+    props.onUpdateHandler({ sorterLoader: true });
+    props.onUpdateHandler({ processedEmails: 0 });
+
     setSorter(true);
     const text = {
       separator: props.separator,
@@ -38,12 +41,14 @@ export default function SortMxButton(props) {
             if (res.status === 200) {
               if (res.data.success === true) {
                 //console.log(res.data.data);
+                props.onUpdateHandler({ sorterLoader: false });
                 props.onUpdateHandler({ sortedEmails: res.data.data });
               }
             }
           })
           .catch((err) => {
             props.onUpdateHandler({ loader: false });
+            props.onUpdateHandler({ sorterLoader: false });
             setSorter(false);
             setError(true);
             setMessage("Something Went Wrong!");
@@ -51,6 +56,7 @@ export default function SortMxButton(props) {
       })
       .catch((err) => {
         props.onUpdateHandler({ loader: false });
+        props.onUpdateHandler({ sorterLoader: false });
         setSorter(false);
         setError(true);
         setMessage("Something Went Wrong!");
@@ -63,7 +69,7 @@ export default function SortMxButton(props) {
 
   async function getSorterStat(id) {
     axios.get(`/api/getsortstat/${id}`).then((res) => {
-      if (res.data.status === "completed") {
+      if (res.data.status === "completed" || error === true) {
         console.log("Sorting Completed");
         props.onUpdateHandler({ loader: false });
         props.onUpdateHandler({ sorterLoader: false });

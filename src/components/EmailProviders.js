@@ -1,7 +1,6 @@
 import React from "react";
-import Checkbox from "@material-ui/core/Checkbox";
 import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
-import { Button } from "@material-ui/core";
+import { Button, Checkbox } from "@material-ui/core";
 
 export default function SimpleTable(props) {
   //const [checkedAll, setCheckedAll] = React.useState(false);
