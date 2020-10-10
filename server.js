@@ -4,6 +4,7 @@ const path = require("path");
 const fs = require("fs-extra");
 const keys = require("./config/keys");
 const mongoose = require("mongoose");
+var timeout = require("connect-timeout");
 
 // const legit = require("legit");
 const dns = require("dns");
@@ -19,7 +20,11 @@ const emailValidator = new EmailValidator();
 //connect mongo
 const db = keys.mongoURI;
 mongoose
-  .connect(db, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(db, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+  })
   .then(() => console.log("Mongo Connected"))
   .catch((err) => console.log(err));
 const Sorter = require("./models/Sorter");
@@ -325,10 +330,10 @@ async function saveProviderStat(unique_id, totalEmails, status) {
     status: status,
   };
   console.log(`Total Emails Received: ${totalEmails} Status: ${status}`);
-  await Sorter.findOne({ unique_id: unique_id }).then(async (sorter) => {
-    console.log(sorter);
+  await Sorter.findOne({ unique_id: unique_id }).then((sorter) => {
+    // console.log(sorter);
     if (sorter) {
-      await Sorter.findOneAndUpdate(
+      Sorter.findOneAndUpdate(
         { _id: sorter._id },
         { $set: emailStat },
         { new: true }
@@ -345,84 +350,83 @@ async function saveProviderStat(unique_id, totalEmails, status) {
   });
 }
 
-app.post("/api/sortemails", async (req, res) => {
-  const separator = req.body.separator;
-  const unique_id = req.body.unique_id;
-  Sorter.findOne({ unique_id })
-    .then((sortData) => {
-      console.log(sortData);
-      if (!sortData) {
-        errors.message = "Invalid Sorter Request";
-        res.status(404).json(errors);
-      }
-      const sortFileLocation = path.join(
-        __dirname,
-        absPath + "/" + sortData.name
-      );
-      const emailForSorter = fs
-        .readFileSync(sortFileLocation, "utf-8")
-        .replace(/\n/g, separator)
-        .split(separator);
-      var validatedEmails = {};
-      var totalEmails = 0;
-      Promise.all([
-        ...emailForSorter.map(async (email) => {
-          var foundProviderWithoutLegit = false;
-          var regEmail = email.match(/@(.*?)\./i)[1];
-          allProviders.map(async (rawprovider) => {
-            if (foundProviderWithoutLegit === false) {
-              if (regEmail == rawprovider) {
-                let provider = await checkCommonProvider(rawprovider);
-                console.log(provider);
-                if (validatedEmails[provider]) {
-                  let providers = validatedEmails[provider].length;
-                  console.log(
-                    `Sorted Emails Without Legit Libary: ${provider}` +
-                      " " +
-                      email
+function haltOnTimedout(req, res, next) {
+  if (!req.timedout) next();
+}
+
+app.post(
+  "/api/sortemails",
+  timeout("600s"),
+  haltOnTimedout,
+  async (req, res) => {
+    const separator = req.body.separator;
+    const unique_id = req.body.unique_id;
+    Sorter.findOne({ unique_id })
+      .then(async (sortData) => {
+        //console.log(sortData);
+        if (!sortData) {
+          errors.message = "Invalid Sorter Request";
+          res.status(404).json(errors);
+        }
+        const sortFileLocation = path.join(
+          __dirname,
+          absPath + "/" + sortData.name
+        );
+        const emailForSorter = fs
+          .readFileSync(sortFileLocation, "utf-8")
+          .replace(/\n/g, separator)
+          .split(separator);
+        var validatedEmails = {};
+        var totalEmails = 0;
+        await Promise.all([
+          ...emailForSorter.map(async (email) => {
+            var foundProviderWithoutLegit = false;
+            var regEmail = email.match(/@(.*?)\./i)[1];
+            var checkProvider = allProviders.find(
+              (rawprovider) => regEmail == rawprovider
+            );
+            if (checkProvider === undefined) {
+              console.log(`Sorting Emails with Legit Libary:` + " " + email);
+              try {
+                const { isValid, mxArray } = await validateEmailAddress(email);
+                //console.log(isValid);
+                // console.log(mxArray);
+                //throw new Error("Stoop now");
+                if (isValid) {
+                  // let smtp = mxArray[0]["exchange"];
+                  // console.log("EMAIL VALID For Email: " + email);
+                  const sortedEmails = await checkForServiceProvider(
+                    mxArray,
+                    email
                   );
-                  console.log(`Total Email: ${providers}`);
-                  validatedEmails[provider][providers] = email;
+                  if (validatedEmails[sortedEmails.provider]) {
+                    // console.log(
+                    //   "Added To Associated Provider: " + sortedEmails.provider
+                    // );
+                    let providers =
+                      validatedEmails[sortedEmails.provider].length;
+                    validatedEmails[sortedEmails.provider][providers] =
+                      sortedEmails.email;
+                    console.log(`Total Email: ${providers}`);
+                  } else {
+                    validatedEmails[sortedEmails.provider] = [
+                      sortedEmails.email,
+                    ];
+                  }
                   totalEmails++;
                 } else {
-                  //console.log("Sorted Emails first time: " + email);
-                  validatedEmails[provider] = [email];
+                  console.log("EMAIL invalid for: " + email);
+                  if (validatedEmails["No-mx"]) {
+                    let othersP = validatedEmails["No-mx"].length;
+                    validatedEmails["No-mx"][othersP] = email;
+                  } else {
+                    validatedEmails["No-mx"] = [email];
+                  }
                   totalEmails++;
                 }
-                foundProviderWithoutLegit = true;
-              }
-            }
-          });
-          //await saveProviderStat(unique_id, totalEmails, "processing");
-          if (foundProviderWithoutLegit === false) {
-            console.log(`Sorting Emails with Legit Libary:` + " " + email);
-            try {
-              const { isValid, mxArray } = await validateEmailAddress(email);
-              console.log(isValid);
-              console.log(mxArray);
-              //throw new Error("Stoop now");
-              if (isValid) {
-                // let smtp = mxArray[0]["exchange"];
-                console.log("EMAIL VALID For Email: " + email);
-                const sortedEmails = await checkForServiceProvider(
-                  mxArray,
-                  email
-                );
-                if (validatedEmails[sortedEmails.provider]) {
-                  console.log(
-                    "Added To Associated Provider: " + sortedEmails.provider
-                  );
-                  let providers = validatedEmails[sortedEmails.provider].length;
-                  validatedEmails[sortedEmails.provider][providers] =
-                    sortedEmails.email;
-                  totalEmails++;
-                  console.log(`Total Email: ${providers}`);
-                } else {
-                  totalEmails++;
-                  validatedEmails[sortedEmails.provider] = [sortedEmails.email];
-                }
-              } else {
-                console.log("EMAIL invalid for: " + email);
+              } catch (e) {
+                console.log("EMAIL Exception for: " + email);
+                console.log("Exception Message: " + e.message);
                 if (validatedEmails["No-mx"]) {
                   let othersP = validatedEmails["No-mx"].length;
                   validatedEmails["No-mx"][othersP] = email;
@@ -431,44 +435,50 @@ app.post("/api/sortemails", async (req, res) => {
                 }
                 totalEmails++;
               }
-            } catch (e) {
-              console.log("EMAIL Exception for: " + email);
-              console.log("Exception Message: " + e.message);
-              if (validatedEmails["No-mx"]) {
-                let othersP = validatedEmails["No-mx"].length;
-                validatedEmails["No-mx"][othersP] = email;
+            } else {
+              let provider = await checkCommonProvider(checkProvider);
+              if (validatedEmails[provider]) {
+                let providers = validatedEmails[provider].length;
+                console.log(
+                  `Sorted Emails Without Legit Libary: ${provider}` +
+                    " " +
+                    email
+                );
+                console.log(`Total Email: ${providers}`);
+                validatedEmails[provider][providers] = email;
                 totalEmails++;
               } else {
-                validatedEmails["No-mx"] = [email];
+                //console.log("Sorted Emails first time: " + email);
+                validatedEmails[provider] = [email];
                 totalEmails++;
               }
             }
-            // await saveProviderStat(unique_id, totalEmails, "processing");
-          }
-        }),
-        setTimeout(() => {
-          saveProviderStat(unique_id, totalEmails, "processing");
-        }, 5000),
-      ])
-        .then(() => {
-          saveProviderStat(unique_id, totalEmails, "completed");
-          return res.status(200).json({
-            success: true,
-            message: "Successfully Sorted emails",
-            data: validatedEmails,
+            //console.log(checkProvider);
+            if (totalEmails % 1000 === 0) {
+              await saveProviderStat(unique_id, totalEmails, "processing");
+            }
+          }),
+        ])
+          .then(() => {
+            saveProviderStat(unique_id, totalEmails, "completed");
+            return res.status(200).json({
+              success: true,
+              message: "Successfully Sorted emails",
+              data: validatedEmails,
+            });
+          })
+          .catch((e) => {
+            console.log(e);
+            return res.status(200).json({
+              success: false,
+              message: "Something Went Wrong!",
+              data: {},
+            });
           });
-        })
-        .catch((e) => {
-          console.log(e);
-          return res.status(200).json({
-            success: false,
-            message: "Something Went Wrong!",
-            data: {},
-          });
-        });
-    })
-    .catch((err) => res.status(400).json({ message: "Something went wrong!" }));
-});
+      })
+      .catch((err) => res.status(400).json({ message: err.response.data }));
+  }
+);
 
 async function validateEachEmail(email) {
   return await emailValidator.verify(email);
@@ -487,7 +497,7 @@ async function mxLookup(domain, retryTimes, retryDelay, callback) {
           callback(err);
         } else {
           // try again after a delay
-          console.log("Trying Again: " + retryTimes);
+          console.log("Trying Again: " + cntr);
           setTimeout(run, retryDelay);
         }
       } else {
@@ -542,23 +552,22 @@ const validateEmailAddress = (emailAddress) => {
 
 async function checkForServiceProvider(mxArray, email) {
   var providersEmail = {};
-  var foundProvider = false;
   //console.log(mxArray);
-  await allProviders.map(async (provider) => {
-    if (foundProvider === false) {
-      await mxArray.map(async (exc) => {
-        let exchange = exc["exchange"].toLowerCase().split(".");
-        console.log(exchange);
-        console.log(exchange[exchange.length - 2]);
-        if (foundProvider === false) {
-          console.log("False Provider: " + provider);
-          if (exchange[exchange.length - 2] == provider) {
-            providersEmail.provider = await checkCommonProvider(provider);
-            providersEmail.email = email;
-            foundProvider = true;
-          }
-        }
-      });
+  // let checkProvider = await allProviders.find(
+  //   (provider) => regEmail == rawprovider
+  // );
+
+  await mxArray.map(async (exc) => {
+    let exchange = exc["exchange"].toLowerCase().split(".");
+    let provider = allProviders.find((p) => p == exchange[exchange.length - 2]);
+    // console.log(exchange);
+    // console.log(exchange[exchange.length - 2]);
+
+    // console.log("False Provider: " + provider);
+    if (provider !== undefined) {
+      providersEmail.provider = await checkCommonProvider(provider);
+      providersEmail.email = email;
+      foundProvider = true;
     }
   });
   // console.log(providersEmail);
@@ -614,7 +623,5 @@ if (process.env.NODE_ENV === "production") {
     res.sendFile(path.resolve(__dirname, "build", "index.html"));
   });
 }
-var server = app.listen(port, () =>
-  console.log(`Server running on port ${port}`)
-);
-server.setTimeout(500000);
+app.listen(port, () => console.log(`Server running on port ${port}`));
+//

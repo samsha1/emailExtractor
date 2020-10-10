@@ -23,6 +23,13 @@ function CircularProgressWithLabel(props) {
   );
 }
 
+function getValueForLoader(props) {
+  let total = props.counter;
+  let processedEmails = props.processedEmails;
+  let inPercent = (processedEmails / total) * 100;
+  return inPercent.toFixed(0) + "%";
+}
+
 export default function SorterMainLoader(props) {
   return (
     <div
@@ -35,10 +42,7 @@ export default function SorterMainLoader(props) {
       }}
     >
       {props.sorterLoader ? (
-        <CircularProgressWithLabel
-          value={`${props.processedEmails}/${props.counter}`}
-          size={80}
-        />
+        <CircularProgressWithLabel value={getValueForLoader(props)} size={80} />
       ) : (
         ""
       )}

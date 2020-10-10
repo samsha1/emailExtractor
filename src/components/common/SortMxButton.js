@@ -69,7 +69,7 @@ export default function SortMxButton(props) {
 
   async function getSorterStat(id) {
     axios.get(`/api/getsortstat/${id}`).then((res) => {
-      if (res.data.status === "completed" || error === true) {
+      if (res.data.status === "completed") {
         console.log("Sorting Completed");
         props.onUpdateHandler({ loader: false });
         props.onUpdateHandler({ sorterLoader: false });
@@ -81,10 +81,13 @@ export default function SortMxButton(props) {
         //   }
         // }
       } else {
-        props.onUpdateHandler({ processedEmails: res.data.count });
-        setTimeout(() => {
-          getSorterStat(id);
-        }, 5000);
+        if (error === false) {
+          console.log("Still Needs Processing");
+          props.onUpdateHandler({ processedEmails: res.data.count });
+          setTimeout(() => {
+            getSorterStat(id);
+          }, 5000);
+        }
       }
     });
   }
